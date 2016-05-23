@@ -12,8 +12,8 @@ using namespace cv;
 void detectAndDisplay( Mat frame );
 
 /** Global variables */
-String face_cascade_name = "haarcascade_frontalface_alt.xml";
-String eyes_cascade_name = "haarcascade_eye_tree_eyeglasses.xml";
+String face_cascade_name = "haarcascades/haarcascade_frontalface_alt.xml";
+String eyes_cascade_name = "haarcascades/haarcascade_eye_tree_eyeglasses.xml";
 CascadeClassifier face_cascade;
 CascadeClassifier eyes_cascade;
 string window_name = "Capture - Face detection";
@@ -28,7 +28,7 @@ int main( int argc, const char** argv ){
     if( !eyes_cascade.load( eyes_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
     // Read the image file
-    Mat frame = imread("diego/opencvex/lena.jpg");
+    Mat frame = imread("../../../lena.jpg");
     // Apply the classifier to the frame
     if (!frame.empty())
         detectAndDisplay(frame);
