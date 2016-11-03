@@ -49,6 +49,7 @@ conan_basic_setup()""")
 
     def package(self):
         self.copy("*.h*", "include", "opencv-%s/include" % self.version)
+        self.copy("*.h*","include/opencv2","opencv2") #opencv2/opencv_modules.hpp is generated
         for lib in self.opencv_libs:
             self.copy("*.h*", "include", "opencv-%s/modules/%s/include" % (self.version, lib))
         self.copy("*.lib", "lib", "lib", keep_path=False)
