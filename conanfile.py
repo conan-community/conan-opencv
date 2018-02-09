@@ -28,12 +28,10 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
      
     def system_requirements(self):
-        pack_names = None
         if os_info.linux_distro == "ubuntu":
-            pack_names = "libgtk2.0-dev", "pkg-config"
             installer = SystemPackageTool()
             installer.update() # Update the package database
-            for pack_name in pack_names:
+            for pack_name in ("libgtk2.0-dev", "pkg-config"):
                 installer.install(pack_name) # Install the package
 
     def build(self):
