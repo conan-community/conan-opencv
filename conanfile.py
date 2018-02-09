@@ -31,7 +31,8 @@ conan_basic_setup()""")
         if os_info.linux_distro == "ubuntu":
             installer = SystemPackageTool()
             installer.update() # Update the package database
-            for pack_name in ("libgtk2.0-dev", "pkg-config"):
+            for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev",
+                              "libglib2.0-dev "):
                 installer.install(pack_name) # Install the package
 
     def build(self):

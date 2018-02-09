@@ -16,5 +16,5 @@ class OpenCVTestConan(ConanFile):
         self.copy("haarcascade*.xml", "bin", "data")
 
     def test(self):
-        os.chdir("bin")
-        self.run(".%slena" % os.sep)
+        assert (os.path.exists("bin/lena"))
+        
