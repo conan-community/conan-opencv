@@ -16,7 +16,7 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
                 "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
-                "jasper/2.0.14@user/testing")
+                "jasper/2.0.14@conan/testing")
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
