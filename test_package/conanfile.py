@@ -1,5 +1,7 @@
 from conans import ConanFile, CMake
 import os
+import platform
+
 
 class OpenCVTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
@@ -16,5 +18,6 @@ class OpenCVTestConan(ConanFile):
         self.copy("haarcascade*.xml", "bin", "data")
 
     def test(self):
-        assert (os.path.exists("bin/lena"))
-        
+        ext = ".exe" if platform.system() == "Windows" else ""
+        assert (os.path.exists("bin/lena%s" % ext))
+
