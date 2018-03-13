@@ -16,7 +16,7 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
                 "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
-                "jasper/2.0.14@conan/testing")
+                "jasper/2.0.14@conan/stable")
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
@@ -77,8 +77,9 @@ conan_basic_setup()""")
     def package_info(self):
         version = self.version.split(".")[:-1]  # last version number is not used
         version = "".join(version) if self.settings.os == "Windows" else ""
+        debug = "d" if self.settings.build_type == "Debug" and self.settings.compiler == "Visual Studio" else ""
         for lib in self.opencv_libs:
-            self.cpp_info.libs.append("opencv_%s%s" % (lib, version))
+            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, debug))
 
         if self.settings.os == "Windows" and not self.options.shared:
             self.cpp_info.libs.extend(["IlmImf"])
