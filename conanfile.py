@@ -12,10 +12,20 @@ class OpenCVConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "fPIC": [True, False],
-               "contrib": [True, False]}
+               "contrib": [True, False],
+               "jpeg": [True, False],
+               "tiff": [True, False],
+               "webp": [True, False],
+               "png": [True, False],
+               "jasper": [True, False]}
     default_options = "shared=False",\
                       "fPIC=True",\
-                      "contrib=False"
+                      "contrib=False",\
+                      "jpeg=True",\
+                      "tiff=True",\
+                      "webp=True",\
+                      "png=True",\
+                      "jasper=True"
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
@@ -40,6 +50,19 @@ class OpenCVConan(ConanFile):
                               "libglib2.0-dev "):
                 installer.install(pack_name) # Install the package
 
+    def requirements(self):
+        self.requires.add('zlib/1.2.11@conan/stable')
+        if self.options.jpeg:
+            self.requires.add('libjpeg-turbo/1.5.2@bincrafters/stable')
+        if self.options.tiff:
+            self.requires.add('libtiff/4.0.9@bincrafters/stable')
+        if self.options.webp:
+            self.requires.add('libwebp/1.0.0@bincrafters/stable')
+        if self.options.png:
+            self.requires.add('libpng/1.6.34@bincrafters/stable')
+        if self.options.jasper:
+            self.requires.add('jasper/2.0.14@conan/stable')
+
     def configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions['BUILD_EXAMPLES'] = False
@@ -54,6 +77,27 @@ class OpenCVConan(ConanFile):
         if self.settings.os != 'Windows':
             cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
             cmake.definitions['ENABLE_PIC'] = self.options.fPIC
+
+        # 3rd-party
+
+        # disable builds for all 3rd-party components, use libraries from conan only
+        cmake.definitions['BUILD_ZLIB'] = False
+        cmake.definitions['BUILD_TIFF'] = False
+        cmake.definitions['BUILD_JASPER'] = False
+        cmake.definitions['BUILD_JPEG'] = False
+        cmake.definitions['BUILD_PNG'] = False
+        cmake.definitions['BUILD_OPENEXR'] = False
+        cmake.definitions['BUILD_WEBP'] = False
+        cmake.definitions['BUILD_TBB'] = False
+        cmake.definitions['BUILD_IPP_IW'] = False
+        cmake.definitions['BUILD_ITT'] = False
+        cmake.definitions['BUILD_JPEG_TURBO_DISABLE'] = True
+
+        cmake.definitions['WITH_JPEG'] = self.options.jpeg
+        cmake.definitions['WITH_TIFF'] = self.options.tiff
+        cmake.definitions['WITH_WEBP'] = self.options.webp
+        cmake.definitions['WITH_PNG'] = self.options.png
+        cmake.definitions['WITH_JASPER'] = self.options.jasper
 
         cmake.configure(build_folder=self.build_subfolder)
         return cmake
@@ -127,5 +171,4 @@ class OpenCVConan(ConanFile):
                                        "rt",
                                        "pthread",
                                        "m",
-                                       "dl",
-                                       "z"])
+                                       "dl"])
