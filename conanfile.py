@@ -127,14 +127,13 @@ class OpenCVConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        version = self.version.split(".")[:-1]  # last version number is not used
-        version = "".join(version) if self.settings.os == "Windows" else ""
-        debug = "d" if self.settings.build_type == "Debug" and self.settings.compiler == "Visual Studio" else ""
+        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
+        version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
         for lib in self.opencv_libs:
-            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, debug))
+            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
         if self.settings.os == "Windows" and not self.options.shared:
-            self.cpp_info.libs.extend(["IlmImf"])
+            self.cpp_info.libs.extend(["IlmImf%s" % suffix])
 
         if self.settings.compiler == 'Visual Studio':
             arch = {'x86': 'x86',
@@ -148,7 +147,7 @@ class OpenCVConan(ConanFile):
         if self.settings.os == "Linux":     
             if not self.options.shared:
                 other_libs = self.collect_libs()
-                for other_lib in ["IlmImf"]:
+                for other_lib in ["IlmImf%s" % suffix]:
                     if other_lib in other_libs:
                         self.cpp_info.libs.append(other_lib)
                     else:
