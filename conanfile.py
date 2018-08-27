@@ -15,6 +15,8 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
                   "learning software library."
+    source_subfolder = "source_subfolder"
+    build_subfolder = "build_subfolder"
     short_paths = True
 
     def source(self):
@@ -34,24 +36,25 @@ conan_basic_setup()""")
                               "libglib2.0-dev "):
                 installer.install(pack_name) # Install the package
 
-    def build(self):
+    def configure_cmake(self):
         cmake = CMake(self)
-        cmake.definitions["BUILD_EXAMPLES"] = "OFF"
-        cmake.definitions["BUILD_DOCS"] = "OFF"
-        cmake.definitions["BUILD_TESTS"] = "OFF"
-        cmake.definitions["BUILD_opencv_apps"] = "OFF"
-        cmake.definitions["BUILD_ZLIB"] = "OFF"
-        cmake.definitions["BUILD_JPEG"] = "OFF"
-        cmake.definitions["BUILD_PNG"] = "OFF"
-        cmake.definitions["BUILD_TIFF"] = "OFF"
-        cmake.definitions["BUILD_JASPER"] = "OFF"
+        cmake.definitions['BUILD_EXAMPLES'] = False
+        cmake.definitions['BUILD_DOCS'] = False
+        cmake.definitions['BUILD_TESTS'] = False
+        cmake.definitions['BUILD_PERF_TEST'] = False
+        cmake.definitions['WITH_IPP'] = False
+        cmake.definitions['BUILD_opencv_apps'] = False
+        if self.settings.compiler == 'Visual Studio':
+            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
+        if self.settings.os != 'Windows':
+            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
+            cmake.definitions['ENABLE_PIC'] = self.options.fPIC
 
-        if self.settings.compiler == "Visual Studio":
-            if "MT" in str(self.settings.compiler.runtime):
-                cmake.definitions["BUILD_WITH_STATIC_CRT"] = "ON"
-            else: 
-                cmake.definitions["BUILD_WITH_STATIC_CRT"] = "OFF"
-        cmake.configure(source_folder='opencv-%s' % self.version)
+        cmake.configure(build_folder=self.build_subfolder)
+        return cmake
+
+    def build(self):
+        cmake = self.configure_cmake()
         cmake.build()
 
     opencv_libs = ["stitching",
@@ -71,20 +74,8 @@ conan_basic_setup()""")
                    "core"]
 
     def package(self):
-        self.copy("*.h*", "include", "opencv-%s/include" % self.version)
-        self.copy("*.h*","include/opencv2","opencv2") #opencv2/opencv_modules.hpp is generated
-        for lib in self.opencv_libs:
-            self.copy("*.h*", "include", "opencv-%s/modules/%s/include" % (self.version, lib))
-        self.copy("*.lib", "lib", "lib", keep_path=False)
-        self.copy("*.a", "lib", "lib", keep_path=False) 
-        self.copy("*.dll", "bin", "bin", keep_path=False)
-        self.copy("*.dylib", "lib", "lib", keep_path=False)
-        self.copy("*.so", "lib", "lib", keep_path=False)
-        self.copy("*.xml", "data", "opencv-%s/data" % (self.version))
-        self.copy("*opencv.pc", keep_path=False)
-        if not self.options.shared:
-            self.copy("*.lib", "lib", "3rdparty/lib", keep_path=False)
-            self.copy("*.a", "lib", "3rdparty/lib", keep_path=False)
+        cmake = self.configure_cmake()
+        cmake.install()
 
     def package_info(self):
         version = self.version.split(".")[:-1]  # last version number is not used
