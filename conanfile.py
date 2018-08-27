@@ -54,8 +54,21 @@ conan_basic_setup()""")
         cmake.configure(source_folder='opencv-%s' % self.version)
         cmake.build()
 
-    opencv_libs = ["contrib","stitching", "nonfree", "superres", "ocl", "ts", "videostab", "gpu", "photo", "objdetect", 
-                   "legacy", "video", "ml", "calib3d", "features2d", "highgui", "imgproc", "flann", "core"]
+    opencv_libs = ["stitching",
+                   "superres",
+                   "videostab",
+                   "photo",
+                   "objdetect",
+                   "video",
+                   "ml",
+                   "calib3d",
+                   "features2d",
+                   "imgcodecs",
+                   "videoio",
+                   "highgui",
+                   "imgproc",
+                   "flann",
+                   "core"]
 
     def package(self):
         self.copy("*.h*", "include", "opencv-%s/include" % self.version)
@@ -92,5 +105,22 @@ conan_basic_setup()""")
                     else:
                         self.cpp_info.libs.append(other_lib.replace("lib", ""))
 
-            self.cpp_info.libs.extend(["gthread-2.0", "freetype", "fontconfig", "glib-2.0", "gobject-2.0", "pango-1.0", "pangoft2-1.0", "gio-2.0", "gdk_pixbuf-2.0",
-                                        "cairo", "atk-1.0", "pangocairo-1.0"," gtk-x11-2.0", "gdk-x11-2.0", "rt", "pthread", "m", "dl"])
+            self.cpp_info.libs.extend(["gthread-2.0",
+                                       "freetype",
+                                       "fontconfig",
+                                       "glib-2.0",
+                                       "gobject-2.0",
+                                       "pango-1.0",
+                                       "pangoft2-1.0",
+                                       "gio-2.0",
+                                       "gdk_pixbuf-2.0",
+                                       "cairo",
+                                       "atk-1.0",
+                                       "pangocairo-1.0",
+                                       "gtk-x11-2.0",
+                                       "gdk-x11-2.0",
+                                       "rt",
+                                       "pthread",
+                                       "m",
+                                       "dl",
+                                       "z"])
