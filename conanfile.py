@@ -97,7 +97,7 @@ class OpenCVConan(ConanFile):
                     'x86_64': 'x64'}.get(str(self.settings.arch))
             vc = 'vc%s' % str(self.settings.compiler.version)
             bindir = os.path.join(self.package_folder, arch, vc, 'bin')
-            libdir = os.path.join(self.package_folder, arch, vc, 'lib')
+            libdir = os.path.join(self.package_folder, arch, vc, 'lib' if self.options.shared else 'staticlib')
             self.cpp_info.bindirs.append(bindir)
             self.cpp_info.libdirs.append(libdir)
 
