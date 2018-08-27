@@ -1,5 +1,4 @@
 from conans import ConanFile, CMake, tools
-from conans.tools import os_info, SystemPackageTool
 import os
 
 
@@ -17,7 +16,8 @@ class OpenCVConan(ConanFile):
                "tiff": [True, False],
                "webp": [True, False],
                "png": [True, False],
-               "jasper": [True, False]}
+               "jasper": [True, False],
+               "gtk": [None, 2, 3]}
     default_options = "shared=False",\
                       "fPIC=True",\
                       "contrib=False",\
@@ -25,7 +25,8 @@ class OpenCVConan(ConanFile):
                       "tiff=True",\
                       "webp=True",\
                       "png=True",\
-                      "jasper=True"
+                      "jasper=True",\
+                      "gtk=3"
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
@@ -41,14 +42,25 @@ class OpenCVConan(ConanFile):
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
+        if self.settings.os != 'Linux':
+            del self.options.gtk
 
     def system_requirements(self):
-        if os_info.linux_distro == "ubuntu":
-            installer = SystemPackageTool()
-            installer.update() # Update the package database
-            for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev",
-                              "libglib2.0-dev "):
-                installer.install(pack_name) # Install the package
+        if self.settings.os == 'Linux' and tools.os_info.is_linux:
+            if tools.os_info.with_apt:
+                installer = tools.SystemPackageTool()
+                arch_suffix = ''
+                if self.settings.arch == 'x86':
+                    arch_suffix = ':i386'
+                elif self.settings.arch == 'x86_64':
+                    arch_suffix = ':amd64'
+                packages = []
+                if self.options.gtk == 2:
+                    packages.append('libgtk2.0-dev%s' % arch_suffix)
+                elif self.options.gtk == 3:
+                    packages.append('libgtk-3-dev%s' % arch_suffix)
+                for package in packages:
+                    installer.install(package)
 
     def requirements(self):
         self.requires.add('zlib/1.2.11@conan/stable')
@@ -98,6 +110,12 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_WEBP'] = self.options.webp
         cmake.definitions['WITH_PNG'] = self.options.png
         cmake.definitions['WITH_JASPER'] = self.options.jasper
+        cmake.definitions['WITH_OPENEXR'] = False
+
+        # system libraries
+        if self.settings.os == 'Linux':
+            cmake.definitions['WITH_GTK'] = self.options.gtk is not None
+            cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         cmake.configure(build_folder=self.build_subfolder)
         return cmake
@@ -126,14 +144,20 @@ class OpenCVConan(ConanFile):
         cmake = self.configure_cmake()
         cmake.install()
 
+    def add_libraries_from_pc(self, library):
+        pkg_config = tools.PkgConfig(library)
+        libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
+        lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
+        self.cpp_info.libs.extend(libs)
+        self.cpp_info.libdirs.extend(lib_paths)
+        self.cpp_info.sharedlinkflags.extend(pkg_config.libs_only_other)
+        self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
+
     def package_info(self):
         suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
         version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
         for lib in self.opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
-
-        if self.settings.os == "Windows" and not self.options.shared:
-            self.cpp_info.libs.extend(["IlmImf%s" % suffix])
 
         if self.settings.compiler == 'Visual Studio':
             arch = {'x86': 'x86',
@@ -144,30 +168,12 @@ class OpenCVConan(ConanFile):
             self.cpp_info.bindirs.append(bindir)
             self.cpp_info.libdirs.append(libdir)
 
-        if self.settings.os == "Linux":     
-            if not self.options.shared:
-                other_libs = self.collect_libs()
-                for other_lib in ["IlmImf%s" % suffix]:
-                    if other_lib in other_libs:
-                        self.cpp_info.libs.append(other_lib)
-                    else:
-                        self.cpp_info.libs.append(other_lib.replace("lib", ""))
-
-            self.cpp_info.libs.extend(["gthread-2.0",
-                                       "freetype",
-                                       "fontconfig",
-                                       "glib-2.0",
-                                       "gobject-2.0",
-                                       "pango-1.0",
-                                       "pangoft2-1.0",
-                                       "gio-2.0",
-                                       "gdk_pixbuf-2.0",
-                                       "cairo",
-                                       "atk-1.0",
-                                       "pangocairo-1.0",
-                                       "gtk-x11-2.0",
-                                       "gdk-x11-2.0",
-                                       "rt",
+        if self.settings.os == "Linux":
+            self.cpp_info.libs.extend([
                                        "pthread",
                                        "m",
                                        "dl"])
+            if self.options.gtk == 2:
+                self.add_libraries_from_pc('gtk+-2.0')
+            elif self.options.gtk == 3:
+                self.add_libraries_from_pc('gtk+-3.0')
