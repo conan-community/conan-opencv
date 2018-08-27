@@ -1,13 +1,3 @@
-env:
-   global:
-     - CONAN_REFERENCE: "OpenCV/2.4.13.5"
-     - CONAN_USERNAME: "conan"
-     - CONAN_LOGIN_USERNAME: "conanbot"
-     - CONAN_STABLE_BRANCH_PATTERN: "stable/*"
-     - CONAN_CHANNEL: "testing"
-     - CONAN_UPLOAD: "https://api.bintray.com/conan/conan-community/conan"
-     - CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
-
 linux: &linux
    os: linux
    sudo: required
@@ -20,32 +10,36 @@ osx: &osx
    language: generic
 matrix:
    include:
-
       - <<: *linux
         env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
-
       - <<: *linux
         env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
-
       - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
-
       - <<: *linux
         env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7
-
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=lasote/conangcc8
       - <<: *linux
         env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=lasote/conanclang39
-
       - <<: *linux
         env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=lasote/conanclang40
-
+      - <<: *linux
+        env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=lasote/conanclang50
+      - <<: *linux
+        env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=lasote/conanclang60
+      - <<: *osx
+        osx_image: xcode7.3
+        env: CONAN_APPLE_CLANG_VERSIONS=7.3
       - <<: *osx
         osx_image: xcode8.3
         env: CONAN_APPLE_CLANG_VERSIONS=8.1
-
       - <<: *osx
-        osx_image: xcode9.2
+        osx_image: xcode9
         env: CONAN_APPLE_CLANG_VERSIONS=9.0
+      - <<: *osx
+        osx_image: xcode9.3
+        env: CONAN_APPLE_CLANG_VERSIONS=9.1
 
 install:
   - chmod +x .travis/install.sh
