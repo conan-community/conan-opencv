@@ -48,6 +48,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_PERF_TEST'] = False
         cmake.definitions['WITH_IPP'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
+        cmake.definitions['BUILD_opencv_java'] = False
         if self.settings.compiler == 'Visual Studio':
             cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
         if self.settings.os != 'Windows':
