@@ -8,15 +8,13 @@ class OpenCVConan(ConanFile):
     version = "3.4.2"
     license = "LGPL"
     homepage = "https://github.com/opencv/opencv"
-    description = "OpenCV (Open Source Computer Vision Library)"
     url = "https://github.com/conan-community/conan-opencv.git"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
     default_options = "shared=False"
     generators = "cmake"
-    requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
-                "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
-                "jasper/2.0.14@conan/stable")
+    description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
+                  "learning software library."
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
