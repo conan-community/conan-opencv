@@ -15,6 +15,7 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
                   "learning software library."
+    short_paths = True
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
