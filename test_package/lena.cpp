@@ -24,20 +24,17 @@ int main( int argc, const char** argv ){
     CvCapture* capture;
 
     //-- 1. Load the cascades
-    if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
-    if( !eyes_cascade.load( eyes_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
+    if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading face cascades\n"); return -1; };
+    if( !eyes_cascade.load( eyes_cascade_name ) ){ printf("--(!)Error loading eyes cascades\n"); return -1; };
 
     // Read the image file
-    Mat frame = imread("../../../lena.jpg");
+    Mat frame = imread("lena.jpg");
     // Apply the classifier to the frame
     if (!frame.empty())
         detectAndDisplay(frame);
     else{
         printf(" --(!) No captured frame -- Break!");
     }
-
-    int c = waitKey();
-
     return 0;
 }
 
@@ -70,5 +67,5 @@ void detectAndDisplay( Mat frame ){
         }
     }
     //-- Show what you got
-    imshow( window_name, frame );
+    imwrite( "out.jpg", frame );
 }
