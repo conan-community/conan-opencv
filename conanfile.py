@@ -92,6 +92,15 @@ class OpenCVConan(ConanFile):
         if self.settings.os == "Windows" and not self.options.shared:
             self.cpp_info.libs.extend(["IlmImf"])
 
+        if self.settings.compiler == 'Visual Studio':
+            arch = {'x86': 'x86',
+                    'x86_64': 'x64'}.get(str(self.settings.arch))
+            vc = 'vc%s' % str(self.settings.compiler.version)
+            bindir = os.path.join(self.package_folder, arch, vc, 'bin')
+            libdir = os.path.join(self.package_folder, arch, vc, 'lib')
+            self.cpp_info.bindirs.append(bindir)
+            self.cpp_info.libdirs.append(libdir)
+
         if self.settings.os == "Linux":     
             if not self.options.shared:
                 other_libs = self.collect_libs()
