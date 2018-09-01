@@ -10,8 +10,13 @@ class OpenCVConan(ConanFile):
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv.git"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {"shared": [True, False],
+               "fPIC": [True, False],
+               "contrib": [True, False]}
+    default_options = "shared=False",\
+                      "fPIC=True",\
+                      "contrib=False"
+    exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
                   "learning software library."
@@ -20,14 +25,13 @@ class OpenCVConan(ConanFile):
     short_paths = True
 
     def source(self):
-        tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
-        tools.unzip("opencv.zip")
-        os.unlink("opencv.zip")
-        tools.replace_in_file("opencv-%s/CMakeLists.txt" % self.version, "project(OpenCV CXX C)",
-                                """project(OpenCV CXX C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()""")
-     
+        tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
+        os.rename('opencv-%s' % self.version, self.source_subfolder)
+
+    def config_options(self):
+        if self.settings.os == 'Windows':
+            del self.options.fPIC
+
     def system_requirements(self):
         if os_info.linux_distro == "ubuntu":
             installer = SystemPackageTool()
