@@ -39,6 +39,13 @@ class OpenCVConan(ConanFile):
         tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
         os.rename('opencv-%s' % self.version, self.source_subfolder)
 
+        # https://github.com/opencv/opencv/issues/8010
+        if str(self.settings.compiler) == 'clang' and str(self.settings.compiler.version) == '3.9':
+            tools.replace_in_file(os.path.join(self.source_subfolder, 'modules', 'imgproc', 'CMakeLists.txt'),
+            'ocv_define_module(imgproc opencv_core WRAP java python js)',
+            'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
+            'ocv_append_source_files_cxx_compiler_options(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp -O0)')
+
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
@@ -84,6 +91,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_IPP'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
         cmake.definitions['BUILD_opencv_java'] = False
+
         if self.settings.compiler == 'Visual Studio':
             cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
         if self.settings.os != 'Windows':
