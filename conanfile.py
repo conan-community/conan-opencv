@@ -44,7 +44,7 @@ class OpenCVConan(ConanFile):
             tools.replace_in_file(os.path.join(self.source_subfolder, 'modules', 'imgproc', 'CMakeLists.txt'),
             'ocv_define_module(imgproc opencv_core WRAP java python js)',
             'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
-            'ocv_append_source_files_cxx_compiler_options(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp -O0)')
+            'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
 
     def config_options(self):
         if self.settings.os == 'Windows':
