@@ -125,6 +125,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_JASPER'] = self.options.jasper
         cmake.definitions['WITH_OPENEXR'] = False
         cmake.definitions['WITH_PROTOBUF'] = False
+        cmake.definitions['WITH_FFMPEG'] = False
 
         # system libraries
         if self.settings.os == 'Linux':
