@@ -1,5 +1,6 @@
 from conans import ConanFile, CMake, tools
 import os
+import shutil
 
 
 class OpenCVConan(ConanFile):
@@ -45,6 +46,7 @@ class OpenCVConan(ConanFile):
             'ocv_define_module(imgproc opencv_core WRAP java python js)',
             'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
             'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
+        shutil.rmtree(os.path.join(self.source_subfolder, '3rdparty'))
 
     def config_options(self):
         if self.settings.os == 'Windows':
