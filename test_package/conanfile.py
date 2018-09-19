@@ -24,4 +24,4 @@ class TestPackageConan(ConanFile):
         img_path = os.path.join(self.source_folder, "lena.jpg")
         shutil.copy(img_path, 'bin')
         with tools.chdir('bin'):
-            self.run('./lena', run_environment=True)
+            self.run('lena.exe' if self.settings.os == 'Windows' else './lena', run_environment=True)
