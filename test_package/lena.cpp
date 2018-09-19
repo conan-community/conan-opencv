@@ -68,4 +68,5 @@ void detectAndDisplay( Mat frame ){
     }
     //-- Show what you got
     imwrite( "out.jpg", frame );
+    std::cout << "success! open \"out.jpg\" to see the resulting image." << std::endl;
 }
