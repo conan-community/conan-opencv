@@ -17,11 +17,11 @@ class TestPackageConan(ConanFile):
         cmake.build()
 
     def imports(self):
-        self.copy("*haarcascade_*.xml", os.path.join('haarcascades'), keep_path=False)
-        self.copy("*lbpcascade_*.xml", os.path.join('lbpcascades'), keep_path=False)
+        self.copy("*haarcascade_*.xml", os.path.join('bin', 'haarcascades'), keep_path=False)
+        self.copy("*lbpcascade_*.xml", os.path.join('bin', 'lbpcascades'), keep_path=False)
 
     def test(self):
         img_path = os.path.join(self.source_folder, "lena.jpg")
-        shutil.copy(img_path, '.')
-        bin_path = os.path.join("bin", "lena")
-        self.run(bin_path, run_environment=True)
+        shutil.copy(img_path, 'bin')
+        with tools.chdir('bin'):
+            self.run('./lena', run_environment=True)
