@@ -1,97 +1,199 @@
 from conans import ConanFile, CMake, tools
-from conans.tools import os_info, SystemPackageTool
 import os
+import shutil
 
 
 class OpenCVConan(ConanFile):
-    name = "OpenCV"
-    version = "2.4.13.5"
+    name = "opencv"
+    version = "3.4.2"
     license = "LGPL"
     homepage = "https://github.com/opencv/opencv"
-    description = "OpenCV (Open Source Computer Vision Library)"
     url = "https://github.com/conan-community/conan-opencv.git"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {"shared": [True, False],
+               "fPIC": [True, False],
+               "contrib": [True, False],
+               "jpeg": [True, False],
+               "tiff": [True, False],
+               "webp": [True, False],
+               "png": [True, False],
+               "jasper": [True, False],
+               "gtk": [None, 2, 3]}
+    default_options = "shared=False",\
+                      "fPIC=True",\
+                      "contrib=False",\
+                      "jpeg=True",\
+                      "tiff=True",\
+                      "webp=True",\
+                      "png=True",\
+                      "jasper=True",\
+                      "gtk=3"
+    exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
-    requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
-                "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
-                "jasper/2.0.14@conan/stable")
+    description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
+                  "learning software library."
+    source_subfolder = "source_subfolder"
+    build_subfolder = "build_subfolder"
+    short_paths = True
 
     def source(self):
-        tools.download("https://github.com/opencv/opencv/archive/2.4.13.5.zip", "opencv.zip")
-        tools.unzip("opencv.zip")
-        os.unlink("opencv.zip")
-        tools.replace_in_file("opencv-%s/CMakeLists.txt" % self.version, "project(OpenCV CXX C)",
-                                """project(OpenCV CXX C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()""")
-     
+        tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
+        os.rename('opencv-%s' % self.version, self.source_subfolder)
+
+        # https://github.com/opencv/opencv/issues/8010
+        if str(self.settings.compiler) == 'clang' and str(self.settings.compiler.version) == '3.9':
+            tools.replace_in_file(os.path.join(self.source_subfolder, 'modules', 'imgproc', 'CMakeLists.txt'),
+            'ocv_define_module(imgproc opencv_core WRAP java python js)',
+            'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
+            'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
+        shutil.rmtree(os.path.join(self.source_subfolder, '3rdparty'))
+
+    def config_options(self):
+        if self.settings.os == 'Windows':
+            del self.options.fPIC
+        if self.settings.os != 'Linux':
+            del self.options.gtk
+
     def system_requirements(self):
-        if os_info.linux_distro == "ubuntu":
-            installer = SystemPackageTool()
-            installer.update() # Update the package database
-            for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev",
-                              "libglib2.0-dev "):
-                installer.install(pack_name) # Install the package
+        if self.settings.os == 'Linux' and tools.os_info.is_linux:
+            if tools.os_info.with_apt:
+                installer = tools.SystemPackageTool()
+                arch_suffix = ''
+                if self.settings.arch == 'x86':
+                    arch_suffix = ':i386'
+                elif self.settings.arch == 'x86_64':
+                    arch_suffix = ':amd64'
+                packages = []
+                if self.options.gtk == 2:
+                    packages.append('libgtk2.0-dev%s' % arch_suffix)
+                elif self.options.gtk == 3:
+                    packages.append('libgtk-3-dev%s' % arch_suffix)
+                for package in packages:
+                    installer.install(package)
+
+    def requirements(self):
+        self.requires.add('zlib/1.2.11@conan/stable')
+        if self.options.jpeg:
+            # NOTE : use the same libjpeg implementation as jasper uses
+            # otherwise, jpeg_create_decompress will fail on version check
+            # self.requires.add('libjpeg-turbo/1.5.2@bincrafters/stable')
+            self.requires.add('libjpeg/9b@bincrafters/stable')
+        if self.options.tiff:
+            self.requires.add('libtiff/4.0.9@bincrafters/stable')
+        if self.options.webp:
+            self.requires.add('libwebp/1.0.0@bincrafters/stable')
+        if self.options.png:
+            self.requires.add('libpng/1.6.34@bincrafters/stable')
+        if self.options.jasper:
+            self.requires.add('jasper/2.0.14@conan/stable')
+
+    def configure_cmake(self):
+        cmake = CMake(self)
+        cmake.definitions['BUILD_EXAMPLES'] = False
+        cmake.definitions['BUILD_DOCS'] = False
+        cmake.definitions['BUILD_TESTS'] = False
+        cmake.definitions['BUILD_PERF_TEST'] = False
+        cmake.definitions['WITH_IPP'] = False
+        cmake.definitions['BUILD_opencv_apps'] = False
+        cmake.definitions['BUILD_opencv_java'] = False
+
+        if self.settings.compiler == 'Visual Studio':
+            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
+        if self.settings.os != 'Windows':
+            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
+            cmake.definitions['ENABLE_PIC'] = self.options.fPIC
+
+        # 3rd-party
+
+        # disable builds for all 3rd-party components, use libraries from conan only
+        cmake.definitions['BUILD_ZLIB'] = False
+        cmake.definitions['BUILD_TIFF'] = False
+        cmake.definitions['BUILD_JASPER'] = False
+        cmake.definitions['BUILD_JPEG'] = False
+        cmake.definitions['BUILD_PNG'] = False
+        cmake.definitions['BUILD_OPENEXR'] = False
+        cmake.definitions['BUILD_WEBP'] = False
+        cmake.definitions['BUILD_TBB'] = False
+        cmake.definitions['BUILD_IPP_IW'] = False
+        cmake.definitions['BUILD_ITT'] = False
+        cmake.definitions['BUILD_JPEG_TURBO_DISABLE'] = True
+
+        cmake.definitions['WITH_JPEG'] = self.options.jpeg
+        cmake.definitions['WITH_TIFF'] = self.options.tiff
+        cmake.definitions['WITH_WEBP'] = self.options.webp
+        cmake.definitions['WITH_PNG'] = self.options.png
+        cmake.definitions['WITH_JASPER'] = self.options.jasper
+        cmake.definitions['WITH_OPENEXR'] = False
+        cmake.definitions['WITH_PROTOBUF'] = False
+        cmake.definitions['WITH_FFMPEG'] = False
+
+        # system libraries
+        if self.settings.os == 'Linux':
+            cmake.definitions['WITH_GTK'] = self.options.gtk is not None
+            cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
+
+        cmake.configure(build_folder=self.build_subfolder)
+        return cmake
 
     def build(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_EXAMPLES"] = "OFF"
-        cmake.definitions["BUILD_DOCS"] = "OFF"
-        cmake.definitions["BUILD_TESTS"] = "OFF"
-        cmake.definitions["BUILD_opencv_apps"] = "OFF"
-        cmake.definitions["BUILD_ZLIB"] = "OFF"
-        cmake.definitions["BUILD_JPEG"] = "OFF"
-        cmake.definitions["BUILD_PNG"] = "OFF"
-        cmake.definitions["BUILD_TIFF"] = "OFF"
-        cmake.definitions["BUILD_JASPER"] = "OFF"
-
-        if self.settings.compiler == "Visual Studio":
-            if "MT" in str(self.settings.compiler.runtime):
-                cmake.definitions["BUILD_WITH_STATIC_CRT"] = "ON"
-            else: 
-                cmake.definitions["BUILD_WITH_STATIC_CRT"] = "OFF"
-        cmake.configure(source_folder='opencv-%s' % self.version)
+        cmake = self.configure_cmake()
         cmake.build()
 
-    opencv_libs = ["contrib","stitching", "nonfree", "superres", "ocl", "ts", "videostab", "gpu", "photo", "objdetect", 
-                   "legacy", "video", "ml", "calib3d", "features2d", "highgui", "imgproc", "flann", "core"]
+    opencv_libs = ["stitching",
+                   "superres",
+                   "videostab",
+                   "photo",
+                   "objdetect",
+                   "video",
+                   "ml",
+                   "calib3d",
+                   "features2d",
+                   "imgcodecs",
+                   "videoio",
+                   "highgui",
+                   "imgproc",
+                   "flann",
+                   "core"]
 
     def package(self):
-        self.copy("*.h*", "include", "opencv-%s/include" % self.version)
-        self.copy("*.h*","include/opencv2","opencv2") #opencv2/opencv_modules.hpp is generated
-        for lib in self.opencv_libs:
-            self.copy("*.h*", "include", "opencv-%s/modules/%s/include" % (self.version, lib))
-        self.copy("*.lib", "lib", "lib", keep_path=False)
-        self.copy("*.a", "lib", "lib", keep_path=False) 
-        self.copy("*.dll", "bin", "bin", keep_path=False)
-        self.copy("*.dylib", "lib", "lib", keep_path=False)
-        self.copy("*.so", "lib", "lib", keep_path=False)
-        self.copy("*.xml", "data", "opencv-%s/data" % (self.version))
-        self.copy("*opencv.pc", keep_path=False)
-        if not self.options.shared:
-            self.copy("*.lib", "lib", "3rdparty/lib", keep_path=False)
-            self.copy("*.a", "lib", "3rdparty/lib", keep_path=False)
+        cmake = self.configure_cmake()
+        cmake.install()
+
+    def add_libraries_from_pc(self, library):
+        pkg_config = tools.PkgConfig(library)
+        libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
+        lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
+        self.cpp_info.libs.extend(libs)
+        self.cpp_info.libdirs.extend(lib_paths)
+        self.cpp_info.sharedlinkflags.extend(pkg_config.libs_only_other)
+        self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
 
     def package_info(self):
-        version = self.version.split(".")[:-1]  # last version number is not used
-        version = "".join(version) if self.settings.os == "Windows" else ""
-        debug = "d" if self.settings.build_type == "Debug" and self.settings.compiler == "Visual Studio" else ""
+        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
+        version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
         for lib in self.opencv_libs:
-            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, debug))
+            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
-        if self.settings.os == "Windows" and not self.options.shared:
-            self.cpp_info.libs.extend(["IlmImf"])
+        if self.settings.compiler == 'Visual Studio':
+            arch = {'x86': 'x86',
+                    'x86_64': 'x64'}.get(str(self.settings.arch))
+            vc = 'vc%s' % str(self.settings.compiler.version)
+            bindir = os.path.join(self.package_folder, arch, vc, 'bin')
+            libdir = os.path.join(self.package_folder, arch, vc, 'lib' if self.options.shared else 'staticlib')
+            self.cpp_info.bindirs.append(bindir)
+            self.cpp_info.libdirs.append(libdir)
 
-        if self.settings.os == "Linux":     
-            if not self.options.shared:
-                other_libs = self.collect_libs()
-                for other_lib in ["IlmImf"]:
-                    if other_lib in other_libs:
-                        self.cpp_info.libs.append(other_lib)
-                    else:
-                        self.cpp_info.libs.append(other_lib.replace("lib", ""))
-
-            self.cpp_info.libs.extend(["gthread-2.0", "freetype", "fontconfig", "glib-2.0", "gobject-2.0", "pango-1.0", "pangoft2-1.0", "gio-2.0", "gdk_pixbuf-2.0",
-                                        "cairo", "atk-1.0", "pangocairo-1.0"," gtk-x11-2.0", "gdk-x11-2.0", "rt", "pthread", "m", "dl"])
+        if self.settings.os == "Linux":
+            self.cpp_info.libs.extend([
+                                       "pthread",
+                                       "m",
+                                       "dl"])
+            if self.options.gtk == 2:
+                self.add_libraries_from_pc('gtk+-2.0')
+            elif self.options.gtk == 3:
+                self.add_libraries_from_pc('gtk+-3.0')
+        elif self.settings.os == 'Macos':
+            for framework in ['OpenCL',
+                              'Accelerate']:
+                self.cpp_info.exelinkflags.append('-framework %s' % framework)
+            self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags

@@ -1,9 +1,13 @@
-from conans import ConanFile, CMake
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
+from conans import ConanFile, CMake, tools
 import os
-import platform
+import shutil
 
 
-class OpenCVTestConan(ConanFile):
+class TestPackageConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 
@@ -13,11 +17,11 @@ class OpenCVTestConan(ConanFile):
         cmake.build()
 
     def imports(self):
-        self.copy("*.dll", "bin", "bin")
-        self.copy("*.dylib", "bin", "lib")
-        self.copy("haarcascade*.xml", "bin", "data")
+        self.copy("*haarcascade_*.xml", os.path.join('bin', 'haarcascades'), keep_path=False)
+        self.copy("*lbpcascade_*.xml", os.path.join('bin', 'lbpcascades'), keep_path=False)
 
     def test(self):
-        ext = ".exe" if platform.system() == "Windows" else ""
-        assert (os.path.exists("bin/lena%s" % ext))
-
+        img_path = os.path.join(self.source_folder, "lena.jpg")
+        shutil.copy(img_path, 'bin')
+        with tools.chdir('bin'):
+            self.run('lena.exe' if self.settings.os == 'Windows' else './lena', run_environment=True)
