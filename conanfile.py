@@ -4,7 +4,7 @@ import os
 
 
 class OpenCVConan(ConanFile):
-    name = "OpenCV"
+    name = "opencv"
     version = "2.4.13.5"
     license = "LGPL"
     homepage = "https://github.com/opencv/opencv"
