@@ -197,3 +197,5 @@ class OpenCVConan(ConanFile):
                               'Accelerate']:
                 self.cpp_info.exelinkflags.append('-framework %s' % framework)
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
+        elif self.settings.os == 'Windows':
+            self.cpp_info.libs.append('Vfw32')
