@@ -1,6 +1,6 @@
 env:
    global:
-     - CONAN_REFERENCE: "OpenCV/2.4.13.5"
+     - CONAN_REFERENCE: "opencv/2.4.13.5"
      - CONAN_USERNAME: "conan"
      - CONAN_LOGIN_USERNAME: "conanbot"
      - CONAN_STABLE_BRANCH_PATTERN: "stable/*"
