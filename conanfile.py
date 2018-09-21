@@ -28,12 +28,17 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
 
     def system_requirements(self):
-        if os_info.linux_distro == "ubuntu":
-            installer = SystemPackageTool()
-            installer.update() # Update the package database
-            for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev",
-                              "libglib2.0-dev "):
-                installer.install(pack_name) # Install the package
+        if self.settings.os == 'Linux' and tools.os_info.is_linux:
+            if tools.os_info.with_apt:
+                installer = SystemPackageTool()
+                installer.update() # Update the package database
+                arch_suffix = ''
+                if self.settings.arch == 'x86':
+                    arch_suffix = ':i386'
+                else:
+                    arch_suffix = ":amd64"
+                for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev", "libglib2.0-dev"):
+                    installer.install('%s%s' % (pack_name, arch_suffix)) # Install the package
 
     def build(self):
         cmake = CMake(self)
