@@ -35,14 +35,14 @@ conan_basic_setup()""")
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
             if tools.os_info.with_apt:
                 installer = SystemPackageTool()
-                installer.update()  # Update the package database
                 arch_suffix = ''
                 if self.settings.arch == 'x86':
                     arch_suffix = ':i386'
                 elif self.settings.arch == 'x86_64':
                     arch_suffix = ":amd64"
-                for pack_name in ("libgtk2.0-dev", "pkg-config", "libpango1.0-dev", "libcairo2-dev", "libglib2.0-dev"):
-                    installer.install('%s%s' % (pack_name, arch_suffix))  # Install the package
+                packages = ["libgtk2.0-dev%s" % arch_suffix]
+                for package in packages:
+                    installer.install(package)
 
     def configure_cmake(self):
         cmake = CMake(self)
@@ -99,6 +99,15 @@ conan_basic_setup()""")
         cmake = self.configure_cmake()
         cmake.install()
 
+    def add_libraries_from_pc(self, library):
+        pkg_config = tools.PkgConfig(library)
+        libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
+        lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
+        self.cpp_info.libs.extend(libs)
+        self.cpp_info.libdirs.extend(lib_paths)
+        self.cpp_info.sharedlinkflags.extend(pkg_config.libs_only_other)
+        self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
+
     def package_info(self):
         version = self.version.split(".")[:-1]  # last version number is not used
         version = "".join(version) if self.settings.os == "Windows" else ""
@@ -111,21 +120,5 @@ conan_basic_setup()""")
             self.cpp_info.libdirs.append(libdir)
 
         if self.settings.os == "Linux":
-            self.cpp_info.libs.extend(["gthread-2.0",
-                                       "freetype",
-                                       "fontconfig",
-                                       "glib-2.0",
-                                       "gobject-2.0",
-                                       "pango-1.0",
-                                       "pangoft2-1.0",
-                                       "gio-2.0",
-                                       "gdk_pixbuf-2.0",
-                                        "cairo",
-                                       "atk-1.0",
-                                       "pangocairo-1.0",
-                                       " gtk-x11-2.0",
-                                       "gdk-x11-2.0",
-                                       "rt",
-                                       "pthread",
-                                       "m",
-                                       "dl"])
+            self.add_libraries_from_pc('gtk+-2.0')
+            self.cpp_info.libs.extend(["rt", "pthread", "m", "dl"])
