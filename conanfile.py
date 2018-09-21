@@ -56,6 +56,7 @@ conan_basic_setup()""")
         cmake.definitions['WITH_CUFFT'] = False
         cmake.definitions['WITH_CUBLAS'] = False
         cmake.definitions['WITH_NVCUVID'] = False
+        cmake.definitions['BUILD_opencv_java'] = False
 
         if self.settings.compiler == "Visual Studio":
             if "MT" in str(self.settings.compiler.runtime):
