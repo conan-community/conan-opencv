@@ -26,7 +26,7 @@ class OpenCVConan(ConanFile):
                                 """project(OpenCV CXX C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
-     
+
     def system_requirements(self):
         if os_info.linux_distro == "ubuntu":
             installer = SystemPackageTool()
@@ -50,12 +50,12 @@ conan_basic_setup()""")
         if self.settings.compiler == "Visual Studio":
             if "MT" in str(self.settings.compiler.runtime):
                 cmake.definitions["BUILD_WITH_STATIC_CRT"] = "ON"
-            else: 
+            else:
                 cmake.definitions["BUILD_WITH_STATIC_CRT"] = "OFF"
         cmake.configure(source_folder='opencv-%s' % self.version)
         cmake.build()
 
-    opencv_libs = ["contrib","stitching", "nonfree", "superres", "ocl", "ts", "videostab", "gpu", "photo", "objdetect", 
+    opencv_libs = ["contrib","stitching", "nonfree", "superres", "ocl", "ts", "videostab", "gpu", "photo", "objdetect",
                    "legacy", "video", "ml", "calib3d", "features2d", "highgui", "imgproc", "flann", "core"]
 
     def package(self):
@@ -64,7 +64,7 @@ conan_basic_setup()""")
         for lib in self.opencv_libs:
             self.copy("*.h*", "include", "opencv-%s/modules/%s/include" % (self.version, lib))
         self.copy("*.lib", "lib", "lib", keep_path=False)
-        self.copy("*.a", "lib", "lib", keep_path=False) 
+        self.copy("*.a", "lib", "lib", keep_path=False)
         self.copy("*.dll", "bin", "bin", keep_path=False)
         self.copy("*.dylib", "lib", "lib", keep_path=False)
         self.copy("*.so", "lib", "lib", keep_path=False)
@@ -84,7 +84,7 @@ conan_basic_setup()""")
         if self.settings.os == "Windows" and not self.options.shared:
             self.cpp_info.libs.extend(["IlmImf"])
 
-        if self.settings.os == "Linux":     
+        if self.settings.os == "Linux":
             if not self.options.shared:
                 other_libs = self.collect_libs()
                 for other_lib in ["IlmImf"]:
