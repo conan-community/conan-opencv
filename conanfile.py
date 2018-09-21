@@ -46,18 +46,20 @@ conan_basic_setup()""")
         cmake.definitions["BUILD_DOCS"] = False
         cmake.definitions["BUILD_TESTS"] = False
         cmake.definitions["BUILD_opencv_apps"] = False
+        cmake.definitions['BUILD_opencv_java'] = False
         cmake.definitions["BUILD_ZLIB"] = False
         cmake.definitions["BUILD_JPEG"] = False
         cmake.definitions["BUILD_PNG"] = False
         cmake.definitions["BUILD_TIFF"] = False
         cmake.definitions["BUILD_JASPER"] = False
+        cmake.definitions["BUILD_OPENEXR"] = False
 
         cmake.definitions['WITH_CUDA'] = False
         cmake.definitions['WITH_CUFFT'] = False
         cmake.definitions['WITH_CUBLAS'] = False
         cmake.definitions['WITH_NVCUVID'] = False
-        cmake.definitions['BUILD_opencv_java'] = False
         cmake.definitions['WITH_FFMPEG'] = False
+        cmake.definitions["WITH_OPENEXR"] = False
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["BUILD_WITH_STATIC_CRT"] = "MT" in str(self.settings.compiler.runtime)
@@ -104,18 +106,7 @@ conan_basic_setup()""")
             libdir = os.path.join(self.package_folder, 'lib' if self.options.shared else 'staticlib')
             self.cpp_info.libdirs.append(libdir)
 
-        if self.settings.os == "Windows" and not self.options.shared:
-            self.cpp_info.libs.extend(["IlmImf"])
-
         if self.settings.os == "Linux":
-            if not self.options.shared:
-                other_libs = self.collect_libs()
-                for other_lib in ["IlmImf"]:
-                    if other_lib in other_libs:
-                        self.cpp_info.libs.append(other_lib)
-                    else:
-                        self.cpp_info.libs.append(other_lib.replace("lib", ""))
-
             self.cpp_info.libs.extend(["gthread-2.0",
                                        "freetype",
                                        "fontconfig",
