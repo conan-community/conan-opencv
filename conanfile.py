@@ -116,7 +116,19 @@ conan_basic_setup()""")
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, debug))
 
         if self.settings.compiler == 'Visual Studio':
-            libdir = os.path.join(self.package_folder, 'lib' if self.options.shared else 'staticlib')
+            libdir = 'lib' if self.options.shared else 'staticlib'
+            arch = {'x86': 'x86',
+                    'x86_64': 'x64'}.get(str(self.settings.arch))
+            if self.settings.compiler.version == '12':
+                libdir = os.path.join(self.package_folder, arch, 'vc12', libdir)
+                bindir = os.path.join(self.package_folder, arch, 'vc12', 'bin')
+            elif self.settings.compiler.version == '14':
+                libdir = os.path.join(self.package_folder, arch, 'vc14', libdir)
+                bindir = os.path.join(self.package_folder, arch, 'vc14', 'bin')
+            else:
+                libdir = os.path.join(self.package_folder, libdir)
+                bindir = os.path.join(self.package_folder, 'bin')
+            self.cpp_info.bindirs.append(bindir)
             self.cpp_info.libdirs.append(libdir)
 
         if self.settings.os == "Linux":
