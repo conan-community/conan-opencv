@@ -11,12 +11,16 @@ class OpenCVConan(ConanFile):
     description = "OpenCV (Open Source Computer Vision Library)"
     url = "https://github.com/conan-community/conan-opencv.git"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {"shared": [True, False], "fPIC": [True, False]}
+    default_options = "shared=False", "fPIC=True"
     generators = "cmake"
     requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
                 "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
                 "jasper/2.0.14@conan/stable")
+
+    def config_options(self):
+        if self.settings.os == 'Windows':
+            del self.options.fPIC
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/%s.zip" % self.version, "opencv.zip")
