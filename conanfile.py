@@ -135,3 +135,8 @@ conan_basic_setup()""")
         if self.settings.os == "Linux":
             self.add_libraries_from_pc('gtk+-2.0')
             self.cpp_info.libs.extend(["rt", "pthread", "m", "dl"])
+        elif self.settings.os == "Macos":
+            frameworks = ["Cocoa"]
+            for framework in frameworks:
+                self.cpp_info.exelinkflags.append("-framework %s" % framework)
+            self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
