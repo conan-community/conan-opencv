@@ -64,6 +64,7 @@ conan_basic_setup()""")
         cmake.definitions['WITH_NVCUVID'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions["WITH_OPENEXR"] = False
+        cmake.definitions["WITH_GSTREAMER"] = False
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["BUILD_WITH_STATIC_CRT"] = "MT" in str(self.settings.compiler.runtime)
