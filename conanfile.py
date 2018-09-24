@@ -116,6 +116,7 @@ conan_basic_setup()""")
         cmake.definitions['WITH_NVCUVID'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions["WITH_GSTREAMER"] = False
+        cmake.definitions["WITH_OPENCL"] = False
 
         cmake.definitions['WITH_JPEG'] = self.options.jpeg
         cmake.definitions['WITH_PNG'] = self.options.png
@@ -137,7 +138,6 @@ conan_basic_setup()""")
                    "stitching",
                    "nonfree",
                    "superres",
-                   "ocl",
                    "ts",
                    "videostab",
                    "gpu",
