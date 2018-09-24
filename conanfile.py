@@ -63,7 +63,8 @@ class OpenCVConan(ConanFile):
             def openexr_library_names(name):
                 # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
                 version = self.requires["openexr"].conan_reference.version
-                major, minor, *_ = version.split('.')
+                version_tokens = version.split('.')
+                major, minor = version_tokens[0], version_tokens[1]
                 suffix = '%s_%s' % (major, minor)
                 names = [name,
                          '%s-%s' % (name, suffix),
