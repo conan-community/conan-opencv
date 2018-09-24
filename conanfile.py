@@ -1,6 +1,7 @@
 from conans import ConanFile, CMake, tools
 from conans.tools import SystemPackageTool
 import os
+import shutil
 
 
 class OpenCVConan(ConanFile):
@@ -11,25 +12,76 @@ class OpenCVConan(ConanFile):
     description = "OpenCV (Open Source Computer Vision Library)"
     url = "https://github.com/conan-community/conan-opencv.git"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = "shared=False", "fPIC=True"
+    options = {"shared": [True, False],
+               "fPIC": [True, False],
+               "jpeg": [True, False],
+               "png": [True, False],
+               "tiff": [True, False],
+               "jasper": [True, False],
+               "openexr": [True, False]}
+    default_options = "shared=False",\
+                      "fPIC=True",\
+                      "jpeg=True",\
+                      "png=True",\
+                      "tiff=True",\
+                      "jasper=True",\
+                      "openexr=True"
     generators = "cmake"
-    requires = ("zlib/1.2.11@conan/stable", "libjpeg/9b@bincrafters/stable",
-                "libpng/1.6.34@bincrafters/stable", "libtiff/4.0.8@bincrafters/stable",
-                "jasper/2.0.14@conan/stable")
 
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
+
+    def requirements(self):
+        self.requires.add('zlib/1.2.11@conan/stable')
+        if self.options.jpeg:
+            self.requires.add('libjpeg/9b@bincrafters/stable')
+        if self.options.png:
+            self.requires.add('libpng/1.6.34@bincrafters/stable')
+        if self.options.tiff:
+            self.requires.add('libtiff/4.0.8@bincrafters/stable')
+        if self.options.jasper:
+            self.requires.add('jasper/2.0.14@conan/stable')
+        if self.options.openexr:
+            self.requires.add('openexr/2.3.0@conan/stable')
 
     def source(self):
         tools.download("https://github.com/opencv/opencv/archive/%s.zip" % self.version, "opencv.zip")
         tools.unzip("opencv.zip")
         os.unlink("opencv.zip")
         tools.replace_in_file("opencv-%s/CMakeLists.txt" % self.version, "project(OpenCV CXX C)",
-                                """project(OpenCV CXX C)
+                              """project(OpenCV CXX C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
+
+        # allow to find conan-supplied OpenEXR
+        if self.options.openexr:
+            find_openexr = os.path.join('opencv-%s' % self.version, 'cmake', 'OpenCVFindOpenEXR.cmake')
+            tools.replace_in_file(find_openexr,
+                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
+                                  '')
+            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
+
+            def openexr_library_names(name):
+                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
+                version = self.requires["openexr"].conan_reference.version
+                major, minor, *_ = version.split('.')
+                suffix = '%s_%s' % (major, minor)
+                names = [name,
+                         '%s-%s' % (name, suffix),
+                         '%s-%s_s' % (name, suffix),
+                         '%s-%s_d' % (name, suffix),
+                         '%s-%s_s_d' % (name, suffix),
+                         '%s_s' % name,
+                         '%s_s_d' % name]
+                return ' '.join(names)
+
+            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
+                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
+
+        shutil.rmtree(os.path.join('opencv-%s' % self.version, '3rdparty'))
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -63,8 +115,13 @@ conan_basic_setup()""")
         cmake.definitions['WITH_CUBLAS'] = False
         cmake.definitions['WITH_NVCUVID'] = False
         cmake.definitions['WITH_FFMPEG'] = False
-        cmake.definitions["WITH_OPENEXR"] = False
         cmake.definitions["WITH_GSTREAMER"] = False
+
+        cmake.definitions['WITH_JPEG'] = self.options.jpeg
+        cmake.definitions['WITH_PNG'] = self.options.png
+        cmake.definitions['WITH_TIFF'] = self.options.tiff
+        cmake.definitions['WITH_JASPER'] = self.options.jasper
+        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["BUILD_WITH_STATIC_CRT"] = "MT" in str(self.settings.compiler.runtime)
