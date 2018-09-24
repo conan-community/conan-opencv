@@ -18,6 +18,7 @@ class OpenCVConan(ConanFile):
                "webp": [True, False],
                "png": [True, False],
                "jasper": [True, False],
+               "openexr": [True, False],
                "gtk": [None, 2, 3]}
     default_options = "shared=False",\
                       "fPIC=True",\
@@ -27,6 +28,7 @@ class OpenCVConan(ConanFile):
                       "webp=True",\
                       "png=True",\
                       "jasper=True",\
+                      "openexr=True",\
                       "gtk=3"
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
@@ -47,6 +49,33 @@ class OpenCVConan(ConanFile):
             'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
             'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
         shutil.rmtree(os.path.join(self.source_subfolder, '3rdparty'))
+
+        # allow to find conan-supplied OpenEXR
+        if self.options.openexr:
+            find_openexr = os.path.join(self.source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
+            tools.replace_in_file(find_openexr,
+                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
+                                  '')
+            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
+
+            def openexr_library_names(name):
+                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
+                version = self.requires["openexr"].conan_reference.version
+                major, minor, *_ = version.split('.')
+                suffix = '%s_%s' % (major, minor)
+                names = [name,
+                         '%s-%s' % (name, suffix),
+                         '%s-%s_s' % (name, suffix),
+                         '%s-%s_d' % (name, suffix),
+                         '%s-%s_s_d' % (name, suffix),
+                         '%s_s' % name,
+                         '%s_s_d' % name]
+                return ' '.join(names)
+
+            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
+                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -86,6 +115,8 @@ class OpenCVConan(ConanFile):
             self.requires.add('libpng/1.6.34@bincrafters/stable')
         if self.options.jasper:
             self.requires.add('jasper/2.0.14@conan/stable')
+        if self.options.openexr:
+            self.requires.add('openexr/2.3.0@conan/stable')
 
     def configure_cmake(self):
         cmake = CMake(self)
@@ -123,9 +154,12 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_WEBP'] = self.options.webp
         cmake.definitions['WITH_PNG'] = self.options.png
         cmake.definitions['WITH_JASPER'] = self.options.jasper
-        cmake.definitions['WITH_OPENEXR'] = False
+        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
         cmake.definitions['WITH_PROTOBUF'] = False
         cmake.definitions['WITH_FFMPEG'] = False
+
+        if self.options.openexr:
+            cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
         # system libraries
         if self.settings.os == 'Linux':
