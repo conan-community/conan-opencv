@@ -22,7 +22,7 @@ class OpenCVConan(ConanFile):
                "gtk": [None, 2, 3]}
     default_options = "shared=False",\
                       "fPIC=True",\
-                      "contrib=False",\
+                      "contrib=True",\
                       "jpeg=True",\
                       "tiff=True",\
                       "webp=True",\
@@ -41,6 +41,10 @@ class OpenCVConan(ConanFile):
     def source(self):
         tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
         os.rename('opencv-%s' % self.version, self.source_subfolder)
+
+        if self.options.contrib:
+            tools.get("https://github.com/opencv/opencv_contrib/archive/%s.zip" % self.version)
+            os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
         # https://github.com/opencv/opencv/issues/8010
         if str(self.settings.compiler) == 'clang' and str(self.settings.compiler.version) == '3.9':
@@ -166,6 +170,9 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Linux':
             cmake.definitions['WITH_GTK'] = self.options.gtk is not None
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
+
+        if self.options.contrib:
+            cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(self.build_folder, 'contrib', 'modules')
 
         cmake.configure(build_folder=self.build_subfolder)
         return cmake
