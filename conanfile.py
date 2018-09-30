@@ -104,6 +104,20 @@ class OpenCVConan(ConanFile):
                     packages.append('libgtk-3-dev%s' % arch_suffix)
                 for package in packages:
                     installer.install(package)
+            elif tools.os_info.with_yum:
+                installer = tools.SystemPackageTool()
+                arch_suffix = ''
+                if self.settings.arch == 'x86':
+                    arch_suffix = '.i686'
+                elif self.settings.arch == 'x86_64':
+                    arch_suffix = '.x86_64'
+                packages = []
+                if self.options.gtk == 2:
+                    packages.append('gtk2-devel%s' % arch_suffix)
+                elif self.options.gtk == 3:
+                    packages.append('gtk3-devel%s' % arch_suffix)
+                for package in packages:
+                    installer.install(package)
 
     def requirements(self):
         self.requires.add('zlib/1.2.11@conan/stable')
