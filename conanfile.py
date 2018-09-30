@@ -125,6 +125,11 @@ class OpenCVConan(ConanFile):
 
     def configure_cmake(self):
         cmake = CMake(self)
+
+        cmake.definitions['CMAKE_INSTALL_LIBDIR'] = 'lib'
+        cmake.definitions['CMAKE_INSTALL_BINDIR'] = 'bin'
+        cmake.definitions['CMAKE_INSTALL_INCLUDEDIR'] = 'include'
+
         cmake.definitions['BUILD_EXAMPLES'] = False
         cmake.definitions['BUILD_DOCS'] = False
         cmake.definitions['BUILD_TESTS'] = False
