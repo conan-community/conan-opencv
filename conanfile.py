@@ -236,7 +236,13 @@ class OpenCVConan(ConanFile):
                 self.add_libraries_from_pc('gtk+-3.0')
         elif self.settings.os == 'Macos':
             for framework in ['OpenCL',
-                              'Accelerate']:
+                              'Accelerate',
+                              'CoreMedia',
+                              'CoreVideo',
+                              'CoreGraphics',
+                              'AVFoundation',
+                              'QuartzCore',
+                              'Cocoa']:
                 self.cpp_info.exelinkflags.append('-framework %s' % framework)
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
         elif self.settings.os == 'Windows':
