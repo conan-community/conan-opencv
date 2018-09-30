@@ -204,16 +204,16 @@ class OpenCVConan(ConanFile):
                    "superres",
                    "videostab",
                    "photo",
-                   "objdetect",
                    "video",
                    "ml",
                    "calib3d",
                    "features2d",
-                   "imgcodecs",
-                   "videoio",
                    "highgui",
-                   "imgproc",
+                   "videoio",
                    "flann",
+                   "imgcodecs",
+                   "objdetect",
+                   "imgproc",
                    "core"]
 
     def package(self):
