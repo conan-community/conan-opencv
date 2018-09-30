@@ -111,7 +111,7 @@ class OpenCVConan(ConanFile):
             # NOTE : use the same libjpeg implementation as jasper uses
             # otherwise, jpeg_create_decompress will fail on version check
             # self.requires.add('libjpeg-turbo/1.5.2@bincrafters/stable')
-            self.requires.add('libjpeg/9b@bincrafters/stable')
+            self.requires.add('libjpeg/9c@bincrafters/stable')
         if self.options.tiff:
             self.requires.add('libtiff/4.0.9@bincrafters/stable')
         if self.options.webp:
