@@ -22,7 +22,7 @@ class OpenCVConan(ConanFile):
                "gtk": [None, 2, 3]}
     default_options = "shared=False",\
                       "fPIC=True",\
-                      "contrib=True",\
+                      "contrib=False",\
                       "jpeg=True",\
                       "tiff=True",\
                       "webp=True",\
