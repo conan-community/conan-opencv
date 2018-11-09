@@ -19,14 +19,15 @@ class OpenCVConan(ConanFile):
                "tiff": [True, False],
                "jasper": [True, False],
                "openexr": [True, False]}
-    default_options = "shared=False",\
-                      "fPIC=True",\
-                      "jpeg=True",\
-                      "png=True",\
-                      "tiff=True",\
-                      "jasper=True",\
-                      "openexr=True"
+    default_options = {'shared': False,
+                       "fPIC": True,
+                       "jpeg": True,
+                       "png": True,
+                       "tiff": True,
+                       "jasper": True,
+                       "openexr": True}
     generators = "cmake"
+    _source_subfolder = "sources"
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -46,43 +47,14 @@ class OpenCVConan(ConanFile):
             self.requires.add('openexr/2.3.0@conan/stable')
 
     def source(self):
-        tools.download("https://github.com/opencv/opencv/archive/%s.zip" % self.version, "opencv.zip")
-        tools.unzip("opencv.zip")
-        os.unlink("opencv.zip")
-        tools.replace_in_file("opencv-%s/CMakeLists.txt" % self.version, "project(OpenCV CXX C)",
+        tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
+        os.rename("opencv-%s" % self.version, self._source_subfolder)
+        tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"), "project(OpenCV CXX C)",
                               """project(OpenCV CXX C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
 
-        # allow to find conan-supplied OpenEXR
-        if self.options.openexr:
-            find_openexr = os.path.join('opencv-%s' % self.version, 'cmake', 'OpenCVFindOpenEXR.cmake')
-            tools.replace_in_file(find_openexr,
-                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
-                                  '')
-            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
-
-            def openexr_library_names(name):
-                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
-                version = self.requires["openexr"].conan_reference.version
-                version_tokens = version.split('.')
-                major, minor = version_tokens[0], version_tokens[1]
-                suffix = '%s_%s' % (major, minor)
-                names = [name,
-                         '%s-%s' % (name, suffix),
-                         '%s-%s_s' % (name, suffix),
-                         '%s-%s_d' % (name, suffix),
-                         '%s-%s_s_d' % (name, suffix),
-                         '%s_s' % name,
-                         '%s_s_d' % name]
-                return ' '.join(names)
-
-            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
-                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
-
-        shutil.rmtree(os.path.join('opencv-%s' % self.version, '3rdparty'))
+        shutil.rmtree(os.path.join(self._source_subfolder, '3rdparty'))
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -97,7 +69,7 @@ conan_basic_setup()""")
                 for package in packages:
                     installer.install(package)
 
-    def configure_cmake(self):
+    def _configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions["BUILD_EXAMPLES"] = False
         cmake.definitions["BUILD_DOCS"] = False
@@ -127,12 +99,40 @@ conan_basic_setup()""")
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["BUILD_WITH_STATIC_CRT"] = "MT" in str(self.settings.compiler.runtime)
-        cmake.configure(source_folder='opencv-%s' % self.version)
+        cmake.configure(source_folder=self._source_subfolder)
 
         return cmake
 
     def build(self):
-        cmake = self.configure_cmake()
+        # allow to find conan-supplied OpenEXR
+        if self.options.openexr:
+            find_openexr = os.path.join(self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
+            tools.replace_in_file(find_openexr,
+                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
+                                  '')
+            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
+
+            def openexr_library_names(name):
+                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
+                version = self.requires["openexr"].conan_reference.version
+                version_tokens = version.split('.')
+                major, minor = version_tokens[0], version_tokens[1]
+                suffix = '%s_%s' % (major, minor)
+                names = [name,
+                         '%s-%s' % (name, suffix),
+                         '%s-%s_s' % (name, suffix),
+                         '%s-%s_d' % (name, suffix),
+                         '%s-%s_s_d' % (name, suffix),
+                         '%s_s' % name,
+                         '%s_s_d' % name]
+                return ' '.join(names)
+
+            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
+                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
+
+        cmake = self._configure_cmake()
         cmake.build()
 
     opencv_libs = ["contrib",
@@ -155,10 +155,10 @@ conan_basic_setup()""")
                    "core"]
 
     def package(self):
-        cmake = self.configure_cmake()
+        cmake = self._configure_cmake()
         cmake.install()
 
-    def add_libraries_from_pc(self, library):
+    def _add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)
         libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
         lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
@@ -191,7 +191,7 @@ conan_basic_setup()""")
             self.cpp_info.libdirs.append(libdir)
 
         if self.settings.os == "Linux":
-            self.add_libraries_from_pc('gtk+-2.0')
+            self._add_libraries_from_pc('gtk+-2.0')
             self.cpp_info.libs.extend(["rt", "pthread", "m", "dl"])
         elif self.settings.os == "Macos":
             frameworks = ["Cocoa"]

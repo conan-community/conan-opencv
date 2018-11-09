@@ -20,4 +20,3 @@ class OpenCVTestConan(ConanFile):
     def test(self):
         ext = ".exe" if platform.system() == "Windows" else ""
         assert (os.path.exists("bin/lena%s" % ext))
-
