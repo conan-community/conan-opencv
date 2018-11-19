@@ -157,6 +157,7 @@ conan_basic_setup()""")
     def package(self):
         cmake = self._configure_cmake()
         cmake.install()
+        cmake.patch_config_paths()
 
     def _add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)
