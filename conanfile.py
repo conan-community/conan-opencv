@@ -115,7 +115,6 @@ class OpenCVConan(ConanFile):
         if self.settings.compiler == 'Visual Studio':
             cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
         if self.settings.os != 'Windows':
-            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
             cmake.definitions['ENABLE_PIC'] = self.options.fPIC
 
         # 3rd-party
