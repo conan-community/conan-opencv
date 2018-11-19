@@ -1,35 +1,45 @@
-# conan-opencv
-OpenCV computer vision package for conan package manager
+[![Download](https://api.bintray.com/packages/conan-community/conan/opencv%3Aconan/images/download.svg)](https://bintray.com/conan-community/conan/opencv%3Aconan/_latestVersion)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/ConanCIintegration/conan-opencv?svg=true)](https://ci.appveyor.com/project/ConanCIintegration/conan-opencv)
+[![Build Status](https://travis-ci.org/conan-community/conan-opencv.svg)](https://travis-ci.org/conan-community/conan-opencv)
+# Conan OpenCV
 
-The package is still not uploaded, but working in:
-- Win10, MSVC14, Release, STATIC opencv
-- Win10, MSVC14, Release, SHARED opencv
-- Third parties libs (zlib, etc), from the bundled source in OpenCV, not using other conan packages (yet)
-- It may work with other configuration (Debug, 32bits)
+ ![logo](logo.png)
+
+Conan package for OpenCV library. https://opencv.org/
+
+The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/conan-community/conan/opencv%3Aconan).
+
+## Basic setup
+
+    $ conan install opencv/2.4.13@conan/stable
+
+## Project setup
+
+If you handle multiple dependencies in your project is better to add a *conanfile.txt*
+
+    [requires]
+    opencv/2.4.13@conan/stable
+
+    [options]
+    opencv:shared=True # False
+    opencv:fPIC=True # False (only available for Linux and Macos)
+
+    [generators]
+    cmake
+
+## Issues
+
+If you wish to report an issue for Conan Community related to this package or any other, please do so here:
+
+[Conan Community Issues](https://github.com/conan-community/community/issues)
+
+## Wish List
+
+If you wish to make a request for Conan Community creating a new package, please do so here:
+
+[Conan Wish List](https://github.com/conan-io/wishlist)
 
 
-Steps: 
+## License
 
-```bash
-$ git clone https://github.com/memsharded/conan-opencv.git
-$ cd conan-opencv
-$ conan export memsharded/testing
-$ conan test_package
-//for other conan defaults
-$ conan test_package -s compiler="Visual Studio" -s compiler.version=14 -s arch=x86_64 -s build_type=Release -s compiler.runtime=MD
-//to select shared opencv (can combine with above compiler settings)
-$ conan test_package -o OpenCV:shared=True
-```
-
-Conan re-builds the package with ``conan test_package``, if you want to re-run the test only, you can
-
-```bash
-$ conan test_package --build=never (--build=missing will also do it)
-```
-
-
-This is ongoing work:
-
-- Feel free to add tests to build, specially if something fails, with a PR, so the package is better tested
-- Report any issues, even if you want to try in different OS, I will add Linux support soon.
-
+[MIT](LICENSE)
