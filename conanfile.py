@@ -198,8 +198,6 @@ class OpenCVConan(ConanFile):
         cmake.build()
 
     opencv_libs = ["stitching",
-                   "superres",
-                   "videostab",
                    "photo",
                    "video",
                    "ml",
