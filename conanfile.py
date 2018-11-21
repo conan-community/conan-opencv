@@ -269,3 +269,4 @@ class OpenCVConan(ConanFile):
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
         elif self.settings.os == 'Windows':
             self.cpp_info.libs.append('Vfw32')
+        self.cpp_info.includedirs.append(os.path.join('include', 'opencv4'))
