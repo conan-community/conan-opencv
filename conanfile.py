@@ -1,4 +1,6 @@
 from conans import ConanFile, CMake, tools
+from conans.model.version import Version
+from conans.errors import ConanInvalidConfiguration
 import os
 import shutil
 
@@ -37,6 +39,11 @@ class OpenCVConan(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
     short_paths = True
+
+    def configure(self):
+        compiler_version = Version(self.settings.compiler.version.value)
+        if self.settings.compiler == "Visual Studio" and compiler_version < "14":
+            raise ConanInvalidConfiguration("OpenCV 4.x requires Visual Studio 2015 and higher")
 
     def source(self):
         tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
