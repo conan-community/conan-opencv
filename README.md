@@ -11,14 +11,14 @@ The packages generated with this **conanfile** can be found in [Bintray](https:/
 
 ## Basic setup
 
-    $ conan install opencv/3.4.3@conan/stable
+    $ conan install opencv/4.0.0@conan/stable
 
 ## Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    opencv/3.4.3@conan/stable
+    opencv/4.0.0@conan/stable
 
     [options]
     opencv:shared=True # False
