@@ -204,7 +204,8 @@ class OpenCVConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.build()
 
-    opencv_libs = ["stitching",
+    opencv_libs = ["gapi",
+                   "stitching",
                    "photo",
                    "video",
                    "ml",
