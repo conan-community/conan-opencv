@@ -272,4 +272,5 @@ class OpenCVConan(ConanFile):
             self.cpp_info.libs.append('Vfw32')
         self.cpp_info.includedirs.append(os.path.join('include', 'opencv4'))
         self.cpp_info.libdirs.append(os.path.join('lib', 'opencv4', '3rdparty'))
-        self.cpp_info.libs.append('ade')
+        if not self.options.shared:
+            self.cpp_info.libs.append('ade')
