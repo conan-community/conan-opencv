@@ -148,6 +148,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_PROTOBUF'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions['WITH_QUIRC'] = False
+        cmake.definitions["WITH_CAROTENE"] = False
 
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
