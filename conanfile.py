@@ -5,7 +5,7 @@ import shutil
 
 class OpenCVConan(ConanFile):
     name = "opencv"
-    version = "3.4.3"
+    version = "3.4.5"
     license = "LGPL"
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv.git"
