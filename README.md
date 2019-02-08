@@ -1,45 +1,76 @@
-[![Download](https://api.bintray.com/packages/conan-community/conan/opencv%3Aconan/images/download.svg)](https://bintray.com/conan-community/conan/opencv%3Aconan/_latestVersion)
-[![Build status](https://ci.appveyor.com/api/projects/status/github/ConanCIintegration/conan-opencv?svg=true)](https://ci.appveyor.com/project/ConanCIintegration/conan-opencv)
-[![Build Status](https://travis-ci.org/conan-community/conan-opencv.svg)](https://travis-ci.org/conan-community/conan-opencv)
-# Conan OpenCV
+[![Download](https://api.bintray.com/packages/conan-community/conan/opencv%3Aconan/images/download.svg) ](https://bintray.com/conan-community/conan/opencv%3Aconan/_latestVersion)
+[![Build Status Travis](https://travis-ci.org/conan-community/conan-opencv.svg)](https://travis-ci.org/conan-community/conan-opencv)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/conan-community/conan-opencv?svg=true)](https://ci.appveyor.com/project/ConanCIintegration/conan-opencv)
 
- ![logo](logo.png)
+## Conan package recipe for [*opencv*](https://github.com/opencv/opencv)
 
-Conan package for OpenCV library. https://opencv.org/
+OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 
-The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/conan-community/conan/opencv%3Aconan).
+The packages generated with this **conanfile** can be found on [Bintray](https://bintray.com/conan-community/conan/opencv%3Aconan).
 
-## Basic setup
 
-    $ conan install opencv/3.4.3@conan/stable
+## Issues
 
-## Project setup
+If you wish to report an issue or make a request for a package, please do so here:
+
+[Issues Tracker](https://github.com/conan-community/community/issues)
+
+
+## For Users
+
+### Basic setup
+
+    $ conan install opencv/3.4.5@conan/stable
+
+### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    opencv/3.4.3@conan/stable
-
-    [options]
-    opencv:shared=True # False
-    opencv:fPIC=True # False (only available for Linux and Macos)
+    opencv/3.4.5@conan/stable
 
     [generators]
     cmake
 
-## Issues
+Complete the installation of requirements for your project running:
 
-If you wish to report an issue for Conan Community related to this package or any other, please do so here:
+    $ mkdir build && cd build && conan install ..
 
-[Conan Community Issues](https://github.com/conan-community/community/issues)
-
-## Wish List
-
-If you wish to make a request for Conan Community creating a new package, please do so here:
-
-[Conan Wish List](https://github.com/conan-io/wishlist)
+Note: It is recommended that you run conan install from a build directory and not the root of the project directory.  This is because conan generates *conanbuildinfo* files specific to a single build configuration which by default comes from an autodetected default profile located in ~/.conan/profiles/default .  If you pass different build configuration options to conan install, it will generate different *conanbuildinfo* files.  Thus, they should not be added to the root of the project, nor committed to git.
 
 
-## License
+## Build and package
+
+The following command both runs all the steps of the conan file, and publishes the package to the local system cache.  This includes downloading dependencies from "build_requires" and "requires" , and then running the build() method.
+
+    $ conan create . conan/stable
+
+
+### Available Options
+| Option        | Default | Possible Values  |
+| ------------- |:----------------- |:------------:|
+| shared      | False |  [True, False] |
+| fPIC      | True |  [True, False] |
+| contrib      | False |  [True, False] |
+| jpeg      | True |  [True, False] |
+| tiff      | True |  [True, False] |
+| webp      | True |  [True, False] |
+| png      | True |  [True, False] |
+| jasper      | True |  [True, False] |
+| openexr      | True |  [True, False] |
+| gtk      | 3 |  [None, 2, 3] |
+
+
+## Add Remote
+
+Conan Community has its own Bintray repository, however, we are working to distribute all package in the Conan Center:
+
+    $ conan remote add conan-center "https://conan.bintray.com"
+
+
+## Conan Recipe License
+
+NOTE: The conan recipe license applies only to the files of this recipe, which can be used to build and package opencv.
+It does *not* in any way apply or is related to the actual software being packaged.
 
 [MIT](LICENSE)
