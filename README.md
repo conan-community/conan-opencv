@@ -47,18 +47,19 @@ The following command both runs all the steps of the conan file, and publishes t
 
 
 ### Available Options
-| Option        | Default | Possible Values  |
-| ------------- |:----------------- |:------------:|
-| shared      | False |  [True, False] |
-| fPIC      | True |  [True, False] |
-| contrib      | False |  [True, False] |
-| jpeg      | True |  [True, False] |
-| tiff      | True |  [True, False] |
-| webp      | True |  [True, False] |
-| png      | True |  [True, False] |
-| jasper      | True |  [True, False] |
-| openexr      | True |  [True, False] |
-| gtk      | 3 |  [None, 2, 3] |
+| Option        | Default | Possible Values  | Description |
+| ------------- |:----------------- |:------------:| ----- |
+| shared      | False |  [True, False] | |
+| fPIC      | True |  [True, False] | |
+| contrib      | False |  [True, False] | |
+| jpeg      | True |  [True, False] | |
+| tiff      | True |  [True, False] | |
+| webp      | True |  [True, False] | |
+| png      | True |  [True, False] | |
+| jasper      | True |  [True, False] | |
+| openexr      | True |  [True, False] | |
+| gtk      | 3 |  [None, 2, 3] | |
+| nonfree | False | [True, False] | Include non-free features in the build. This is required to use patented algorithms such as SIFT, SURF or KinectFusion. |
 
 
 ## Add Remote
