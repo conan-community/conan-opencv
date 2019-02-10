@@ -21,7 +21,8 @@ class OpenCVConan(ConanFile):
                "png": [True, False],
                "jasper": [True, False],
                "openexr": [True, False],
-               "gtk": [None, 2, 3]}
+               "gtk": [None, 2, 3],
+               "nonfree": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -31,7 +32,8 @@ class OpenCVConan(ConanFile):
                        "png": True,
                        "jasper": True,
                        "openexr": True,
-                       "gtk": 3}
+                       "gtk": 3,
+                       "nonfree": False}
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
@@ -160,6 +162,9 @@ class OpenCVConan(ConanFile):
 
         if self.options.contrib:
             cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(self.build_folder, 'contrib', 'modules')
+
+        if self.options.nonfree:
+            cmake.definitions['OPENCV_ENABLE_NONFREE'] = True
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
