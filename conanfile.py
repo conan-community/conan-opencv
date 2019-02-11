@@ -44,20 +44,6 @@ class OpenCVConan(ConanFile):
     short_paths = True
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
-    _opencv_libs = ["gapi",
-                    "stitching",
-                    "photo",
-                    "video",
-                    "ml",
-                    "calib3d",
-                    "features2d",
-                    "highgui",
-                    "videoio",
-                    "flann",
-                    "imgcodecs",
-                    "objdetect",
-                    "imgproc",
-                    "core"]
 
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
@@ -248,9 +234,24 @@ class OpenCVConan(ConanFile):
         self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
 
     def package_info(self):
+        opencv_libs = ["gapi",
+                    "stitching",
+                    "photo",
+                    "video",
+                    "ml",
+                    "calib3d",
+                    "features2d",
+                    "highgui",
+                    "videoio",
+                    "flann",
+                    "imgcodecs",
+                    "objdetect",
+                    "imgproc",
+                    "core"]
+
         suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
         version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
-        for lib in self._opencv_libs:
+        for lib in opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
         if self.options.contrib:
