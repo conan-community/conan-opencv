@@ -1,16 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 from conans.model.version import Version
 from conans.errors import ConanInvalidConfiguration
 import os
-import shutil
 
 
 class OpenCVConan(ConanFile):
     name = "opencv"
     version = "4.0.1"
-    license = "LGPL"
+    license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
-    url = "https://github.com/conan-community/conan-opencv.git"
+    url = "https://github.com/conan-community/conan-opencv"
+    author = "Conan Community"
+    topics = ("conan", "opencv", "computer-vision", "image-processing", "deep-learning")
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "fPIC": [True, False],
@@ -35,12 +38,12 @@ class OpenCVConan(ConanFile):
                        "gtk": 3,
                        "nonfree": False}
     exports_sources = ["CMakeLists.txt"]
+    exports = "LICENSE"
     generators = "cmake"
-    description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
-                  "learning software library."
+    description = "OpenCV is an open source computer vision and machine learning software library."
+    short_paths = True
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
-    short_paths = True
 
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
@@ -48,13 +51,15 @@ class OpenCVConan(ConanFile):
             raise ConanInvalidConfiguration("OpenCV 4.x requires Visual Studio 2015 and higher")
 
     def source(self):
-        tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
+        sha256 = "7b86a0ee804244e0c407321f895b15e4a7162e9c5c0d2efc85f1cadec4011af4"
+        tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
-        tools.get("https://github.com/opencv/opencv_contrib/archive/%s.zip" % self.version)
+        sha256 = "0d8acbad4b7074cfaafd906a7419c23629179d5e98894714402090b192ef8237"
+        tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        shutil.rmtree(os.path.join(self._source_subfolder, '3rdparty'))
+        tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -213,22 +218,8 @@ class OpenCVConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.build()
 
-    opencv_libs = ["gapi",
-                   "stitching",
-                   "photo",
-                   "video",
-                   "ml",
-                   "calib3d",
-                   "features2d",
-                   "highgui",
-                   "videoio",
-                   "flann",
-                   "imgcodecs",
-                   "objdetect",
-                   "imgproc",
-                   "core"]
-
     def package(self):
+        self.copy("LICENSE", dst="licenses", src=self._source_subfolder)
         cmake = self._configure_cmake()
         cmake.install()
         cmake.patch_config_paths()
@@ -243,10 +234,57 @@ class OpenCVConan(ConanFile):
         self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
 
     def package_info(self):
+        opencv_libs = ["gapi",
+                    "stitching",
+                    "photo",
+                    "video",
+                    "ml",
+                    "calib3d",
+                    "features2d",
+                    "highgui",
+                    "videoio",
+                    "flann",
+                    "imgcodecs",
+                    "objdetect",
+                    "imgproc",
+                    "core"]
+
         suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
         version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
-        for lib in self.opencv_libs:
+        for lib in opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
+
+        if self.options.contrib:
+            self.cpp_info.libs.extend([
+                "aruco",
+                "bgsegm",
+                "bioinspired",
+                "ccalib",
+                "datasets",
+                "dpm",
+                "face",
+                "freetype",
+                "fuzzy",
+                "hfs",
+                "img_hash",
+                "line_descriptor",
+                "optflow",
+                "phase_unwrapping",
+                "plot",
+                "reg",
+                "rgbd",
+                "saliency",
+                "shape",
+                "stereo",
+                "structured_light",
+                "superres",
+                "surface_matching",
+                "tracking",
+                "videostab",
+                "xfeatures2d",
+                "ximgproc",
+                "xobjdetect",
+                "xphoto"])
 
         if self.settings.compiler == 'Visual Studio':
             arch = {'x86': 'x86',
