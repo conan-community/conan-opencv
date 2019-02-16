@@ -249,13 +249,8 @@ class OpenCVConan(ConanFile):
                     "imgproc",
                     "core"]
 
-        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
-        version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
-        for lib in opencv_libs:
-            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
-
         if self.options.contrib:
-            self.cpp_info.libs.extend([
+            opencv_libs = [
                 "aruco",
                 "bgsegm",
                 "bioinspired",
@@ -284,7 +279,12 @@ class OpenCVConan(ConanFile):
                 "xfeatures2d",
                 "ximgproc",
                 "xobjdetect",
-                "xphoto"])
+                "xphoto"] + opencv_libs
+
+        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
+        version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
+        for lib in opencv_libs:
+            self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
         if self.settings.compiler == 'Visual Studio':
             arch = {'x86': 'x86',
