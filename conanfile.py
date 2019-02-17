@@ -172,6 +172,10 @@ class OpenCVConan(ConanFile):
         if self.options.nonfree:
             cmake.definitions['OPENCV_ENABLE_NONFREE'] = True
 
+        if self.settings.os == 'Android':
+            cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
+            cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
+
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
 
