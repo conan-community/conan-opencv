@@ -175,6 +175,9 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Android':
             cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
             cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
+            
+            cmake.definitions['BUILD_PERF_TESTS'] = False
+            cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
