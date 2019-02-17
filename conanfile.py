@@ -175,9 +175,22 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Android':
             cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
             cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
-            
+
             cmake.definitions['BUILD_PERF_TESTS'] = False
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
+
+            arch = str(self.settings.arch)
+            if arch.startswith(('armv7', 'armv8')):
+                cmake.definitions['ANDROID_ABI'] = 'NEON'
+            else:
+                cmake.definitions['ANDROID_ABI'] = {'armv5': 'armeabi',
+                                                    'armv6': 'armeabi-v6',
+                                                    'armv7': 'armeabi-v7a',
+                                                    'armv7hf': 'armeabi-v7a',
+                                                    'armv8': 'arm64-v8a'}.get(arch, arch)
+
+            if 'ANDROID_NDK_HOME' in os.environ:
+                cmake.definitions['ANDROID_NDK'] = os.environ.get('ANDROID_NDK_HOME')
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
