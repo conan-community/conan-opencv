@@ -59,7 +59,8 @@ class OpenCVConan(ConanFile):
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
+        if self.settings.os != 'Android':
+            tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -170,6 +171,26 @@ class OpenCVConan(ConanFile):
 
         if self.options.nonfree:
             cmake.definitions['OPENCV_ENABLE_NONFREE'] = True
+
+        if self.settings.os == 'Android':
+            cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
+            cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
+
+            cmake.definitions['BUILD_PERF_TESTS'] = False
+            cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
+
+            arch = str(self.settings.arch)
+            if arch.startswith(('armv7', 'armv8')):
+                cmake.definitions['ANDROID_ABI'] = 'NEON'
+            else:
+                cmake.definitions['ANDROID_ABI'] = {'armv5': 'armeabi',
+                                                    'armv6': 'armeabi-v6',
+                                                    'armv7': 'armeabi-v7a',
+                                                    'armv7hf': 'armeabi-v7a',
+                                                    'armv8': 'arm64-v8a'}.get(arch, arch)
+
+            if 'ANDROID_NDK_HOME' in os.environ:
+                cmake.definitions['ANDROID_NDK'] = os.environ.get('ANDROID_NDK_HOME')
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
