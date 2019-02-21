@@ -255,8 +255,7 @@ class OpenCVConan(ConanFile):
         self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
 
     def package_info(self):
-        opencv_libs = ["gapi",
-                    "stitching",
+        opencv_libs = ["stitching",
                     "photo",
                     "video",
                     "ml",
@@ -269,6 +268,11 @@ class OpenCVConan(ConanFile):
                     "objdetect",
                     "imgproc",
                     "core"]
+
+        if self.settings.os != 'Android':
+            # gapi depends on ade but ade disabled for Android
+            # https://github.com/opencv/opencv/blob/4.0.1/modules/gapi/cmake/DownloadADE.cmake#L2
+            opencv_libs.append("gapi")
 
         if self.options.contrib:
             opencv_libs = [
@@ -344,5 +348,5 @@ class OpenCVConan(ConanFile):
         else:
             self.cpp_info.includedirs.append(os.path.join('include', 'opencv4'))
             self.cpp_info.libdirs.append(os.path.join('lib', 'opencv4', '3rdparty'))
-        if not self.options.shared:
-            self.cpp_info.libs.append('ade')
+            if not self.options.shared:
+                self.cpp_info.libs.append('ade')
