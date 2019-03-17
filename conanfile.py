@@ -26,7 +26,8 @@ class OpenCVConan(ConanFile):
                "jasper": [True, False],
                "openexr": [True, False],
                "gtk": [None, 2, 3],
-               "nonfree": [True, False]}
+               "nonfree": [True, False],
+               "dc1394": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -38,7 +39,8 @@ class OpenCVConan(ConanFile):
                        "jasper": True,
                        "openexr": True,
                        "gtk": 3,
-                       "nonfree": False}
+                       "nonfree": False,
+                       "dc1394": True}
     exports_sources = ["CMakeLists.txt"]
     exports = "LICENSE"
     generators = "cmake"
@@ -157,6 +159,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_PNG'] = self.options.png
         cmake.definitions['WITH_JASPER'] = self.options.jasper
         cmake.definitions['WITH_OPENEXR'] = self.options.openexr
+        cmake.definitions["WITH_1394"] = self.options.dc1394
         cmake.definitions['WITH_PROTOBUF'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions['WITH_QUIRC'] = False
