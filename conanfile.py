@@ -65,7 +65,7 @@ class OpenCVConan(ConanFile):
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        if self.settings.os != 'Android':
+        if self.settings.os != 'Android' and not self.options.carotene:
             tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
 
     def config_options(self):
