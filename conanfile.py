@@ -27,7 +27,8 @@ class OpenCVConan(ConanFile):
                "openexr": [True, False],
                "gtk": [None, 2, 3],
                "nonfree": [True, False],
-               "dc1394": [True, False]}
+               "dc1394": [True, False],
+               "carotene": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -40,7 +41,8 @@ class OpenCVConan(ConanFile):
                        "openexr": True,
                        "gtk": 3,
                        "nonfree": False,
-                       "dc1394": True}
+                       "dc1394": True,
+                       "carotene": False}
     exports_sources = ["CMakeLists.txt"]
     exports = "LICENSE"
     generators = "cmake"
@@ -63,7 +65,7 @@ class OpenCVConan(ConanFile):
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        if self.settings.os != 'Android':
+        if self.settings.os != 'Android' and not self.options.carotene:
             tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
 
     def config_options(self):
@@ -163,7 +165,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_PROTOBUF'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions['WITH_QUIRC'] = False
-        cmake.definitions["WITH_CAROTENE"] = False
+        cmake.definitions["WITH_CAROTENE"] = self.options.carotene
 
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
