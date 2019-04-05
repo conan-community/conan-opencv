@@ -8,7 +8,7 @@ import os
 
 class OpenCVConan(ConanFile):
     name = "opencv"
-    version = "3.4.5"
+    version = "4.0.1"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv"
@@ -306,6 +306,11 @@ class OpenCVConan(ConanFile):
                        "imgproc",
                        "core"]
 
+        if self.settings.os != 'Android':
+            # gapi depends on ade but ade disabled for Android
+            # https://github.com/opencv/opencv/blob/4.0.1/modules/gapi/cmake/DownloadADE.cmake#L2
+            opencv_libs.append("gapi")
+
         if self.options.contrib:
             opencv_libs = [
                 "aruco",
@@ -315,6 +320,7 @@ class OpenCVConan(ConanFile):
                 "datasets",
                 "dpm",
                 "face",
+                "freetype",
                 "fuzzy",
                 "hfs",
                 "img_hash",
@@ -409,3 +415,5 @@ class OpenCVConan(ConanFile):
                 os.path.join('include', 'opencv4'))
             self.cpp_info.libdirs.append(
                 os.path.join('lib', 'opencv4', '3rdparty'))
+            if not self.options.shared:
+                self.cpp_info.libs.append('ade')
