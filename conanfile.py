@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 from conans.tools import SystemPackageTool
 import os
@@ -10,7 +11,8 @@ class OpenCVConan(ConanFile):
     license = "LGPL"
     homepage = "https://github.com/opencv/opencv"
     description = "OpenCV (Open Source Computer Vision Library)"
-    url = "https://github.com/conan-community/conan-opencv.git"
+    url = "https://github.com/conan-community/conan-opencv"
+    author = "Conan Community"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "fPIC": [True, False],
@@ -47,14 +49,9 @@ class OpenCVConan(ConanFile):
             self.requires.add('openexr/2.3.0@conan/stable')
 
     def source(self):
-        tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
+        sha256 = "5fd00b20bb5eb9a9ddfca9318d173d74d0ebe06fefa30a29d9105299e4fd73ec"
+        tools.get("{}/archive/{}.zip".format(self.homepage, self.version), sha256=sha256)
         os.rename("opencv-%s" % self.version, self._source_subfolder)
-        tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"), "project(OpenCV CXX C)",
-                              """project(OpenCV CXX C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()""")
-
-        shutil.rmtree(os.path.join(self._source_subfolder, '3rdparty'))
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -68,6 +65,41 @@ conan_basic_setup()""")
                 packages = ["libgtk2.0-dev%s" % arch_suffix]
                 for package in packages:
                     installer.install(package)
+
+    def _patch_opencv(self):
+        cmake_file = os.path.join(self._source_subfolder, "CMakeLists.txt")
+        tools.replace_in_file(cmake_file, "project(OpenCV CXX C)",
+                        """project(OpenCV CXX C)
+                           include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+                           conan_basic_setup()""")
+        shutil.rmtree(os.path.join(self._source_subfolder, '3rdparty'))
+        # allow to find conan-supplied OpenEXR
+        if self.options.openexr:
+            find_openexr = os.path.join(self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
+            tools.replace_in_file(find_openexr,
+                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
+                                  '')
+            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
+            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
+
+            def openexr_library_names(name):
+                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
+                version = self.requires["openexr"].ref.version
+                version_tokens = version.split('.')
+                major, minor = version_tokens[0], version_tokens[1]
+                suffix = '%s_%s' % (major, minor)
+                names = [name,
+                         '%s-%s' % (name, suffix),
+                         '%s-%s_s' % (name, suffix),
+                         '%s-%s_d' % (name, suffix),
+                         '%s-%s_s_d' % (name, suffix),
+                         '%s_s' % name,
+                         '%s_s_d' % name]
+                return ' '.join(names)
+
+            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
+                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -104,34 +136,7 @@ conan_basic_setup()""")
         return cmake
 
     def build(self):
-        # allow to find conan-supplied OpenEXR
-        if self.options.openexr:
-            find_openexr = os.path.join(self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
-            tools.replace_in_file(find_openexr,
-                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
-                                  '')
-            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)', '')
-
-            def openexr_library_names(name):
-                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
-                version = self.requires["openexr"].conan_reference.version
-                version_tokens = version.split('.')
-                major, minor = version_tokens[0], version_tokens[1]
-                suffix = '%s_%s' % (major, minor)
-                names = [name,
-                         '%s-%s' % (name, suffix),
-                         '%s-%s_s' % (name, suffix),
-                         '%s-%s_d' % (name, suffix),
-                         '%s-%s_s_d' % (name, suffix),
-                         '%s_s' % name,
-                         '%s_s_d' % name]
-                return ' '.join(names)
-
-            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
-                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
-
+        self._patch_opencv()
         cmake = self._configure_cmake()
         cmake.build()
 
