@@ -1,12 +1,5 @@
 env:
    global:
-     - CONAN_REFERENCE: "opencv/2.4.13.5"
-     - CONAN_USERNAME: "conan"
-     - CONAN_LOGIN_USERNAME: "conanbot"
-     - CONAN_STABLE_BRANCH_PATTERN: "stable/*"
-     - CONAN_CHANNEL: "testing"
-     - CONAN_UPLOAD: "https://api.bintray.com/conan/conan-community/conan"
-     - CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
      - CONAN_DOCKER_32_IMAGES: 1
 
 linux: &linux
@@ -39,7 +32,7 @@ matrix:
         env: CONAN_GCC_VERSIONS=4.9 CONAN_TOTAL_PAGES=2 CONAN_CURRENT_PAGE=2 CONAN_DOCKER_IMAGE=conanio/gcc49 CONAN_ARCHS=x86    CONAN_BUILD_TYPES=Release
       - <<: *linux
         env: CONAN_GCC_VERSIONS=4.9 CONAN_TOTAL_PAGES=2 CONAN_CURRENT_PAGE=2 CONAN_DOCKER_IMAGE=conanio/gcc49 CONAN_ARCHS=x86_64 CONAN_BUILD_TYPES=Release
-        
+
       - <<: *linux
         env: CONAN_GCC_VERSIONS=5 CONAN_TOTAL_PAGES=2 CONAN_CURRENT_PAGE=1 CONAN_DOCKER_IMAGE=conanio/gcc5 CONAN_ARCHS=x86    CONAN_BUILD_TYPES=Debug
       - <<: *linux
