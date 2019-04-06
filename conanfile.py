@@ -13,7 +13,8 @@ class OpenCVConan(ConanFile):
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv"
     author = "Conan Community"
-    topics = ("conan", "opencv", "computer-vision", "image-processing", "deep-learning")
+    topics = ("conan", "opencv", "computer-vision",
+              "image-processing", "deep-learning")
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "fPIC": [True, False],
@@ -28,7 +29,8 @@ class OpenCVConan(ConanFile):
                "gtk": [None, 2, 3],
                "nonfree": [True, False],
                "dc1394": [True, False],
-               "carotene": [True, False]}
+               "carotene": [True, False],
+               "cuda": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -42,7 +44,8 @@ class OpenCVConan(ConanFile):
                        "gtk": 3,
                        "nonfree": False,
                        "dc1394": True,
-                       "carotene": False}
+                       "carotene": False,
+                       "cuda": False}
     exports_sources = ["CMakeLists.txt"]
     exports = "LICENSE"
     generators = "cmake"
@@ -54,15 +57,21 @@ class OpenCVConan(ConanFile):
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
         if self.settings.compiler == "Visual Studio" and compiler_version < "14":
-            raise ConanInvalidConfiguration("OpenCV 4.x requires Visual Studio 2015 and higher")
+            raise ConanInvalidConfiguration(
+                "OpenCV 4.x requires Visual Studio 2015 and higher")
+        if self.options.cuda and not self.options.contrib:
+            raise ConanInvalidConfiguration(
+                "opencv:cuda requires opencv:contrib")
 
     def source(self):
         sha256 = "7b86a0ee804244e0c407321f895b15e4a7162e9c5c0d2efc85f1cadec4011af4"
-        tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
+        tools.get("{}/archive/{}.tar.gz".format(self.homepage,
+                                                self.version))
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
         sha256 = "0d8acbad4b7074cfaafd906a7419c23629179d5e98894714402090b192ef8237"
-        tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
+        tools.get(
+            "https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version))
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
         if self.settings.os != 'Android' and not self.options.carotene:
@@ -132,11 +141,21 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_TESTS'] = False
         cmake.definitions['BUILD_PERF_TEST'] = False
         cmake.definitions['WITH_IPP'] = False
+        cmake.definitions['BUILD_IPP_IW'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
         cmake.definitions['BUILD_opencv_java'] = False
+        cmake.definitions['BUILD_opencv_python'] = False
+        cmake.definitions['BUILD_opencv_python2'] = False
+        cmake.definitions['BUILD_opencv_python3'] = False
+        cmake.definitions['INSTALL_C_EXAMPLES'] = False
+        cmake.definitions['INSTALL_PYTHON_EXAMPLES'] = False
+        cmake.definitions['BUILD_opencv_python_bindings_generator'] = False
+        cmake.definitions['BUILD_opencv_js'] = False
+        cmake.definitions['BUILD_opencv_java_bindings_generator'] = False
 
         if self.settings.compiler == 'Visual Studio':
-            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(self.settings.compiler.runtime)
+            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(
+                self.settings.compiler.runtime)
         if self.settings.os != 'Windows':
             cmake.definitions['ENABLE_PIC'] = self.options.fPIC
 
@@ -165,7 +184,10 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_PROTOBUF'] = False
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions['WITH_QUIRC'] = False
-        cmake.definitions["WITH_CAROTENE"] = self.options.carotene
+        cmake.definitions['WITH_CAROTENE'] = self.options.carotene
+        cmake.definitions['WITH_CUDA'] = self.options.cuda
+        # This allows compilation on older GCC/NVCC, otherwise build errors.
+        cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
 
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
@@ -176,7 +198,8 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         if self.options.contrib:
-            cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(self.build_folder, 'contrib', 'modules')
+            cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(
+                self.build_folder, 'contrib', 'modules')
 
         if self.options.nonfree:
             cmake.definitions['OPENCV_ENABLE_NONFREE'] = True
@@ -199,7 +222,8 @@ class OpenCVConan(ConanFile):
                                                     'armv8': 'arm64-v8a'}.get(arch, arch)
 
             if 'ANDROID_NDK_HOME' in os.environ:
-                cmake.definitions['ANDROID_NDK'] = os.environ.get('ANDROID_NDK_HOME')
+                cmake.definitions['ANDROID_NDK'] = os.environ.get(
+                    'ANDROID_NDK_HOME')
 
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
@@ -215,12 +239,14 @@ class OpenCVConan(ConanFile):
 
         # allow to find conan-supplied OpenEXR
         if self.options.openexr:
-            find_openexr = os.path.join(self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
+            find_openexr = os.path.join(
+                self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
             tools.replace_in_file(find_openexr,
                                   r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
                                   '')
             tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
+            tools.replace_in_file(
+                find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
             tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)',
                                   '')
 
@@ -243,7 +269,8 @@ class OpenCVConan(ConanFile):
                 return ' '.join(names)
 
             for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
-                tools.replace_in_file(find_openexr, 'NAMES %s' % lib, 'NAMES %s' % openexr_library_names(lib))
+                tools.replace_in_file(find_openexr, 'NAMES %s' %
+                                      lib, 'NAMES %s' % openexr_library_names(lib))
 
         cmake = self._configure_cmake()
         cmake.build()
@@ -257,7 +284,8 @@ class OpenCVConan(ConanFile):
     def add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)
         libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
-        lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
+        lib_paths = [lib[2:]
+                     for lib in pkg_config.libs_only_L]  # cut -L prefix
         self.cpp_info.libs.extend(libs)
         self.cpp_info.libdirs.extend(lib_paths)
         self.cpp_info.sharedlinkflags.extend(pkg_config.libs_only_other)
@@ -265,18 +293,18 @@ class OpenCVConan(ConanFile):
 
     def package_info(self):
         opencv_libs = ["stitching",
-                    "photo",
-                    "video",
-                    "ml",
-                    "calib3d",
-                    "features2d",
-                    "highgui",
-                    "videoio",
-                    "flann",
-                    "imgcodecs",
-                    "objdetect",
-                    "imgproc",
-                    "core"]
+                       "photo",
+                       "video",
+                       "ml",
+                       "calib3d",
+                       "features2d",
+                       "highgui",
+                       "videoio",
+                       "flann",
+                       "imgcodecs",
+                       "objdetect",
+                       "imgproc",
+                       "core"]
 
         if self.settings.os != 'Android':
             # gapi depends on ade but ade disabled for Android
@@ -314,9 +342,25 @@ class OpenCVConan(ConanFile):
                 "ximgproc",
                 "xobjdetect",
                 "xphoto"] + opencv_libs
+        
+        if self.options.cuda:
+            opencv_libs = ["cudaarithm",
+                            "cudabgsegm",
+                            "cudacodec",
+                            "cudafeatures2d",
+                            "cudafilters",
+                            "cudaimgproc",
+                            "cudalegacy",
+                            "cudaobjdetect",
+                            "cudaoptflow",
+                            "cudastereo",
+                            "cudawarping",
+                            "cudev"
+                            ] + opencv_libs
 
         suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
-        version = self.version.replace(".", "") if self.settings.os == "Windows" else ""
+        version = self.version.replace(
+            ".", "") if self.settings.os == "Windows" else ""
         for lib in opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
@@ -325,9 +369,19 @@ class OpenCVConan(ConanFile):
                     'x86_64': 'x64'}.get(str(self.settings.arch))
             vc = 'vc%s' % str(self.settings.compiler.version)
             bindir = os.path.join(self.package_folder, arch, vc, 'bin')
-            libdir = os.path.join(self.package_folder, arch, vc, 'lib' if self.options.shared else 'staticlib')
+            libdir = os.path.join(
+                self.package_folder, arch, vc, 'lib' if self.options.shared else 'staticlib')
             self.cpp_info.bindirs.append(bindir)
             self.cpp_info.libdirs.append(libdir)
+            if self.options.cuda:
+                cuda_platform = {'x86': 'Win32',
+                        'x86_64': 'x64'}.get(str(self.settings.arch))
+                cuda_path = os.environ.get('CUDA_PATH')
+                self.cpp_info.libdirs.append(os.path.join(cuda_path, "lib", cuda_platform))
+
+        
+        if self.options.cuda:
+            self.cpp_info.libs.extend(["nvrtc", "cudart", "cuda"])
 
         if self.settings.os == "Linux":
             self.cpp_info.libs.extend([
@@ -352,10 +406,14 @@ class OpenCVConan(ConanFile):
         elif self.settings.os == 'Windows':
             self.cpp_info.libs.append('Vfw32')
         if self.settings.os == 'Android' and not self.options.shared:
-            self.cpp_info.includedirs.append(os.path.join('sdk', 'native', 'jni', 'include'))
-            self.cpp_info.libdirs.append(os.path.join('sdk', 'native', 'staticlibs'))
+            self.cpp_info.includedirs.append(
+                os.path.join('sdk', 'native', 'jni', 'include'))
+            self.cpp_info.libdirs.append(
+                os.path.join('sdk', 'native', 'staticlibs'))
         else:
-            self.cpp_info.includedirs.append(os.path.join('include', 'opencv4'))
-            self.cpp_info.libdirs.append(os.path.join('lib', 'opencv4', '3rdparty'))
+            self.cpp_info.includedirs.append(
+                os.path.join('include', 'opencv4'))
+            self.cpp_info.libdirs.append(
+                os.path.join('lib', 'opencv4', '3rdparty'))
             if not self.options.shared:
                 self.cpp_info.libs.append('ade')
