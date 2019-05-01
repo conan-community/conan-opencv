@@ -30,7 +30,8 @@ class OpenCVConan(ConanFile):
                "nonfree": [True, False],
                "dc1394": [True, False],
                "carotene": [True, False],
-               "cuda": [True, False]}
+               "cuda": [True, False],
+               "protobuf": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -45,7 +46,8 @@ class OpenCVConan(ConanFile):
                        "nonfree": False,
                        "dc1394": True,
                        "carotene": False,
-                       "cuda": False}
+                       "cuda": False,
+                       "protobuf": True}
     exports_sources = ["CMakeLists.txt"]
     exports = "LICENSE"
     generators = "cmake"
@@ -133,6 +135,10 @@ class OpenCVConan(ConanFile):
             self.requires.add('jasper/2.0.14@conan/stable')
         if self.options.openexr:
             self.requires.add('openexr/2.3.0@conan/stable')
+        if self.options.protobuf:
+            # NOTE : version should be the same as used in OpenCV release,
+            # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
+            self.requires.add('protobuf/3.5.2@bincrafters/stable')
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -173,6 +179,8 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_IPP_IW'] = False
         cmake.definitions['BUILD_ITT'] = False
         cmake.definitions['BUILD_JPEG_TURBO_DISABLE'] = True
+        cmake.definitions['BUILD_PROTOBUF'] = False
+        cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
 
         cmake.definitions['WITH_JPEG'] = self.options.jpeg
         cmake.definitions['WITH_TIFF'] = self.options.tiff
@@ -181,7 +189,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_JASPER'] = self.options.jasper
         cmake.definitions['WITH_OPENEXR'] = self.options.openexr
         cmake.definitions["WITH_1394"] = self.options.dc1394
-        cmake.definitions['WITH_PROTOBUF'] = False
+        cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions['WITH_QUIRC'] = False
         cmake.definitions['WITH_CAROTENE'] = self.options.carotene
