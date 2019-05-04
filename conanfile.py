@@ -204,6 +204,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_CUDA'] = self.options.cuda
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+        
+        # MinGW doesn't build wih Media Foundation
+        cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
 
         # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
         if self.options.freetype:
