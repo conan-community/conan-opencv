@@ -142,6 +142,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions["WITH_CAROTENE"] = False
 
+        # MinGW doesn't build wih Media Foundation
+        cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
+
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
