@@ -142,6 +142,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions["WITH_CAROTENE"] = False
 
+        # MinGW doesn't build wih Media Foundation
+        cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
+
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
@@ -236,12 +239,21 @@ class OpenCVConan(ConanFile):
         for lib in self.opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
 
+        opencv_lib = 'lib' if self.options.shared else 'staticlib'
+        opencv_arch = {'x86': 'x86',
+                       'x86_64': 'x64',
+                       'armv7': 'ARM',
+                       'armv8': 'ARM'}.get(str(self.settings.arch), None)
+        opencv_runtime = None
         if self.settings.compiler == 'Visual Studio':
-            arch = {'x86': 'x86',
-                    'x86_64': 'x64'}.get(str(self.settings.arch))
-            vc = 'vc%s' % str(self.settings.compiler.version)
-            bindir = os.path.join(self.package_folder, arch, vc, 'bin')
-            libdir = os.path.join(self.package_folder, arch, vc, 'lib' if self.options.shared else 'staticlib')
+            opencv_runtime = 'vc%s' % str(self.settings.compiler.version)
+
+        if self.settings.os == "Windows" and self.settings.compiler == "gcc":
+            opencv_runtime = 'mingw'
+
+        if opencv_runtime:
+            bindir = os.path.join(self.package_folder, opencv_arch, opencv_runtime, 'bin')
+            libdir = os.path.join(self.package_folder, opencv_arch, opencv_runtime, opencv_lib)
             self.cpp_info.bindirs.append(bindir)
             self.cpp_info.libdirs.append(libdir)
 
