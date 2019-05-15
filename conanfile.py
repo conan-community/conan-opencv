@@ -52,7 +52,7 @@ class OpenCVConan(ConanFile):
                        "protobuf": True,
                        "freetype": True,
                        "harfbuzz": True}
-    exports_sources = ["CMakeLists.txt"]
+    exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
     description = "OpenCV is an open source computer vision and machine learning software library."
@@ -265,40 +265,8 @@ class OpenCVConan(ConanFile):
                                   'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/'
                                   'imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
 
-        # allow to find conan-supplied OpenEXR
-        if self.options.openexr:
-            find_openexr = os.path.join(
-                self._source_subfolder, 'cmake', 'OpenCVFindOpenEXR.cmake')
-            tools.replace_in_file(find_openexr,
-                                  r'SET(OPENEXR_ROOT "C:/Deploy" CACHE STRING "Path to the OpenEXR \"Deploy\" folder")',
-                                  '')
-            tools.replace_in_file(find_openexr, r'set(OPENEXR_ROOT "")', '')
-            tools.replace_in_file(
-                find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES x64/Release x64 x64/Debug)', '')
-            tools.replace_in_file(find_openexr, 'SET(OPENEXR_LIBSEARCH_SUFFIXES Win32/Release Win32 Win32/Debug)',
-                                  '')
-
-            def openexr_library_names(name):
-                # OpenEXR library may have different names, depends on namespace versioning, static, debug, etc.
-                reference = str(self.requires["openexr"])
-                version_name = reference.split("@")[0]
-                version = version_name.split("/")[1]
-                version_tokens = version.split('.')
-                major, minor = version_tokens[0], version_tokens[1]
-                suffix = '%s_%s' % (major, minor)
-                names = ['%s-%s' % (name, suffix),
-                         '%s-%s_s' % (name, suffix),
-                         '%s-%s_d' % (name, suffix),
-                         '%s-%s_s_d' % (name, suffix),
-                         '%s' % name,
-                         '%s_s' % name,
-                         '%s_d' % name,
-                         '%s_s_d' % name]
-                return ' '.join(names)
-
-            for lib in ['Half', 'Iex', 'Imath', 'IlmImf', 'IlmThread']:
-                tools.replace_in_file(find_openexr, 'NAMES %s' %
-                                      lib, 'NAMES %s' % openexr_library_names(lib))
+        tools.patch(base_path=self._source_subfolder,
+                    patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-for-conan.patch"))
 
         cmake = self._configure_cmake()
         cmake.build()
