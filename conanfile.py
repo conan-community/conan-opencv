@@ -8,7 +8,7 @@ import os
 
 class OpenCVConan(ConanFile):
     name = "opencv"
-    version = "4.0.1"
+    version = "4.1.0"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv"
@@ -70,12 +70,12 @@ class OpenCVConan(ConanFile):
                 "opencv:cuda requires opencv:contrib")
 
     def source(self):
-        sha256 = "7b86a0ee804244e0c407321f895b15e4a7162e9c5c0d2efc85f1cadec4011af4"
+        sha256 = "8f6e4ab393d81d72caae6e78bd0fd6956117ec9f006fba55fcdb88caf62989b7"
         tools.get("{}/archive/{}.tar.gz".format(self.homepage,
                                                 self.version))
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
-        sha256 = "0d8acbad4b7074cfaafd906a7419c23629179d5e98894714402090b192ef8237"
+        sha256 = "e7d775cc0b87b04308823ca518b11b34cc12907a59af4ccdaf64419c1ba5e682"
         tools.get(
             "https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version))
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
