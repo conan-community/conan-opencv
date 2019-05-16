@@ -71,13 +71,11 @@ class OpenCVConan(ConanFile):
 
     def source(self):
         sha256 = "8f6e4ab393d81d72caae6e78bd0fd6956117ec9f006fba55fcdb88caf62989b7"
-        tools.get("{}/archive/{}.tar.gz".format(self.homepage,
-                                                self.version))
+        tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
         sha256 = "e7d775cc0b87b04308823ca518b11b34cc12907a59af4ccdaf64419c1ba5e682"
-        tools.get(
-            "https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version))
+        tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
         for dir in ['libjasper', 'libjpeg-turbo', 'libjpeg', 'libpng', 'libtiff',
