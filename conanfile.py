@@ -80,8 +80,9 @@ class OpenCVConan(ConanFile):
             "https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version))
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        if self.settings.os != 'Android' and not self.options.carotene:
-            tools.rmdir(os.path.join(self._source_subfolder, '3rdparty'))
+        for dir in ['libjasper', 'libjpeg-turbo', 'libjpeg', 'libpng', 'libtiff',
+                    'libwebp', 'openexr', 'protobuf', 'zlib']:
+            tools.rmdir(os.path.join(self._source_subfolder, '3rdparty', dir))
 
     def config_options(self):
         if self.settings.os == 'Windows':
