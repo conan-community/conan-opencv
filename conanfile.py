@@ -299,7 +299,8 @@ class OpenCVConan(ConanFile):
                        "imgcodecs",
                        "objdetect",
                        "imgproc",
-                       "core"]
+                       "core",
+                       "dnn"]
 
         if self.settings.os != 'Android':
             # gapi depends on ade but ade disabled for Android
