@@ -33,7 +33,10 @@ class OpenCVConan(ConanFile):
                "cuda": [True, False],
                "protobuf": [True, False],
                "freetype": [True, False],
-               "harfbuzz": [True, False]}
+               "harfbuzz": [True, False],
+               "eigen": [True, False],
+               "glog": [True, False],
+               "gflags": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -51,7 +54,10 @@ class OpenCVConan(ConanFile):
                        "cuda": False,
                        "protobuf": True,
                        "freetype": True,
-                       "harfbuzz": True}
+                       "harfbuzz": True,
+                       "eigen": True,
+                       'glog': True,
+                       "gflags": True}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -146,6 +152,12 @@ class OpenCVConan(ConanFile):
             self.requires.add('freetype/2.9.1@bincrafters/stable')
         if self.options.harfbuzz:
             self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
+        if self.options.eigen:
+            self.requires.add('eigen/3.3.7@conan/stable')
+        if self.options.glog:
+            self.requires.add('glog/0.4.0@bincrafters/stable')
+        if self.options.gflags:
+            self.requires.add('gflags/2.2.2@bincrafters/stable')
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -203,6 +215,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_CUDA'] = self.options.cuda
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+        cmake.definitions['WITH_EIGEN'] = self.options.eigen
         
         # MinGW doesn't build wih Media Foundation
         cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
@@ -337,10 +350,13 @@ class OpenCVConan(ConanFile):
                 "xfeatures2d",
                 "ximgproc",
                 "xobjdetect",
-                "xphoto"] + opencv_libs
+                "xphoto",
+                "sfm"] + opencv_libs
         
             if not self.options.freetype or not self.options.harfbuzz:
                 opencv_libs.remove("freetype")
+            if not self.options.eigen or not self.options.glog or not self.options.gflags:
+                opencv_libs.remove("sfm")
 
         if self.options.cuda:
             opencv_libs = ["cudaarithm",
@@ -423,3 +439,5 @@ class OpenCVConan(ConanFile):
                 os.path.join('lib', 'opencv4', '3rdparty'))
             if not self.options.shared:
                 self.cpp_info.libs.append('ade')
+        if self.options.contrib and self.options.eigen and self.options.glog and self.options.gflags:
+            self.cpp_info.libs.append('multiview')
