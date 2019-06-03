@@ -47,7 +47,7 @@ class OpenCVConan(ConanFile):
                        "png": True,
                        "jasper": True,
                        "openexr": True,
-                       "gtk": 3,
+                       "gtk": None,
                        "nonfree": False,
                        "dc1394": True,
                        "carotene": False,
