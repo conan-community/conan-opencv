@@ -84,9 +84,9 @@ class OpenCVConan(ConanFile):
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
-        for dir in ['libjasper', 'libjpeg-turbo', 'libjpeg', 'libpng', 'libtiff',
+        for directory in ['libjasper', 'libjpeg-turbo', 'libjpeg', 'libpng', 'libtiff',
                     'libwebp', 'openexr', 'protobuf', 'zlib']:
-            tools.rmdir(os.path.join(self._source_subfolder, '3rdparty', dir))
+            tools.rmdir(os.path.join(self._source_subfolder, '3rdparty', directory))
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -316,7 +316,7 @@ class OpenCVConan(ConanFile):
                        "dnn"]
 
         if not self.options.protobuf:
-                opencv_libs.remove("dnn")
+            opencv_libs.remove("dnn")
 
         if self.settings.os != 'Android':
             # gapi depends on ade but ade disabled for Android
