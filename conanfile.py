@@ -139,7 +139,7 @@ class OpenCVConan(ConanFile):
         if self.options.webp:
             self.requires.add('libwebp/1.0.0@bincrafters/stable')
         if self.options.png:
-            self.requires.add('libpng/1.6.34@bincrafters/stable')
+            self.requires.add('libpng/1.6.37@bincrafters/stable')
         if self.options.jasper:
             self.requires.add('jasper/2.0.14@conan/stable')
         if self.options.openexr:
@@ -149,7 +149,7 @@ class OpenCVConan(ConanFile):
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
             self.requires.add('protobuf/3.5.2@bincrafters/stable')
         if self.options.freetype:
-            self.requires.add('freetype/2.9.1@bincrafters/stable')
+            self.requires.add('freetype/2.10.0@bincrafters/stable')
         if self.options.harfbuzz:
             self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
         if self.options.eigen:
