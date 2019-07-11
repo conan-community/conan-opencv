@@ -36,7 +36,8 @@ class OpenCVConan(ConanFile):
                "harfbuzz": [True, False],
                "eigen": [True, False],
                "glog": [True, False],
-               "gflags": [True, False]}
+               "gflags": [True, False],
+               "gstreamer": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -57,7 +58,8 @@ class OpenCVConan(ConanFile):
                        "harfbuzz": True,
                        "eigen": True,
                        'glog': True,
-                       "gflags": True}
+                       "gflags": True,
+                       "gstreamer": True}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -201,6 +203,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_PROTOBUF'] = False
         cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
 
+        cmake.definitions['WITH_GSTREAMER'] = self.options.gstreamer
         cmake.definitions['WITH_JPEG'] = self.options.jpeg
         cmake.definitions['WITH_TIFF'] = self.options.tiff
         cmake.definitions['WITH_WEBP'] = self.options.webp
