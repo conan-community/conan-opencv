@@ -166,7 +166,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_EXAMPLES'] = False
         cmake.definitions['BUILD_DOCS'] = False
         cmake.definitions['BUILD_TESTS'] = False
-        cmake.definitions['BUILD_PERF_TEST'] = False
+        cmake.definitions['BUILD_PERF_TESTS'] = False
         cmake.definitions['WITH_IPP'] = False
         cmake.definitions['BUILD_IPP_IW'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
