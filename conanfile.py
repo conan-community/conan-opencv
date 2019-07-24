@@ -227,11 +227,11 @@ class OpenCVConan(ConanFile):
         if self.options.freetype:
             cmake.definitions['FREETYPE_FOUND'] = True
             cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
-            cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].includedirs)
+            cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
         if self.options.harfbuzz:
             cmake.definitions['HARFBUZZ_FOUND'] = True
             cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
-            cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].includedirs)
+            cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
