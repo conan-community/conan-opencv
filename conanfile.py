@@ -59,7 +59,7 @@ class OpenCVConan(ConanFile):
                        "eigen": True,
                        'glog': True,
                        "gflags": True,
-                       "gstreamer": True}
+                       "gstreamer": False}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -160,6 +160,9 @@ class OpenCVConan(ConanFile):
             self.requires.add('glog/0.4.0@bincrafters/stable')
         if self.options.gflags:
             self.requires.add('gflags/2.2.2@bincrafters/stable')
+        if self.options.gstreamer:
+            self.requires.add('gstreamer/1.16.0@bincrafters/stable')
+            self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -234,6 +237,13 @@ class OpenCVConan(ConanFile):
             cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        if self.options.gstreamer:
+            cmake.definitions['HAVE_GSTREAMER'] = True
+            cmake.definitions['GSTREAMER_VERSION'] = self.deps_cpp_info['gstreamer'].version
+            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(self.deps_cpp_info['gstreamer'].libs +
+                                                                self.deps_cpp_info['gst-plugins-base'].libs)
+            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['gstreamer'].include_paths +
+                                                                   self.deps_cpp_info['gst-plugins-base'].include_paths)
 
         # system libraries
         if self.settings.os == 'Linux':
