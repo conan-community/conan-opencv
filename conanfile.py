@@ -143,6 +143,8 @@ class OpenCVConan(ConanFile):
         cmake.definitions["WITH_CAROTENE"] = False
         cmake.definitions['WITH_QUIRC'] = False
 
+        cmake.definitions['WITH_DSHOW'] = self.settings.compiler == 'Visual Studio'
+
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
