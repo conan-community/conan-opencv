@@ -95,6 +95,11 @@ class OpenCVConan(ConanFile):
             del self.options.fPIC
         if self.settings.os != 'Linux':
             del self.options.gtk
+        if not self.options.contrib:
+            del self.options.freetype
+            del self.options.harfbuzz
+            del self.options.glog
+            del self.options.gflags
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -150,19 +155,20 @@ class OpenCVConan(ConanFile):
             # NOTE : version should be the same as used in OpenCV release,
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
             self.requires.add('protobuf/3.5.2@bincrafters/stable')
-        if self.options.freetype:
-            self.requires.add('freetype/2.10.0@bincrafters/stable')
-        if self.options.harfbuzz:
-            self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
         if self.options.eigen:
             self.requires.add('eigen/3.3.7@conan/stable')
-        if self.options.glog:
-            self.requires.add('glog/0.4.0@bincrafters/stable')
-        if self.options.gflags:
-            self.requires.add('gflags/2.2.2@bincrafters/stable')
         if self.options.gstreamer:
             self.requires.add('gstreamer/1.16.0@bincrafters/stable')
             self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
+        if self.options.contrib:
+            if self.options.freetype:
+                self.requires.add('freetype/2.10.0@bincrafters/stable')
+            if self.options.harfbuzz:
+                self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
+            if self.options.glog:
+                self.requires.add('glog/0.4.0@bincrafters/stable')
+            if self.options.gflags:
+                self.requires.add('gflags/2.2.2@bincrafters/stable')
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -226,15 +232,6 @@ class OpenCVConan(ConanFile):
         # MinGW doesn't build wih Media Foundation
         cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
 
-        # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
-        if self.options.freetype:
-            cmake.definitions['FREETYPE_FOUND'] = True
-            cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
-            cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
-        if self.options.harfbuzz:
-            cmake.definitions['HARFBUZZ_FOUND'] = True
-            cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
-            cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
         if self.options.gstreamer:
@@ -248,12 +245,22 @@ class OpenCVConan(ConanFile):
                     includes.extend(self.deps_cpp_info[dep].include_paths)
             cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
             cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
-        if self.options.gflags:
-            cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
-            cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
-        if self.options.glog:
-            cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
-            cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
+        if self.options.contrib:
+            # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
+            if self.options.freetype:
+                cmake.definitions['FREETYPE_FOUND'] = True
+                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
+                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
+            if self.options.harfbuzz:
+                cmake.definitions['HARFBUZZ_FOUND'] = True
+                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
+                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
+            if self.options.gflags:
+                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
+                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
+            if self.options.glog:
+                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
 
         # system libraries
         if self.settings.os == 'Linux':
