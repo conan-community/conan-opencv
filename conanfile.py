@@ -248,6 +248,12 @@ class OpenCVConan(ConanFile):
                     includes.extend(self.deps_cpp_info[dep].include_paths)
             cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
             cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
+        if self.options.gflags:
+            cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
+            cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
+        if self.options.glog:
+            cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+            cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
 
         # system libraries
         if self.settings.os == 'Linux':
@@ -296,6 +302,8 @@ class OpenCVConan(ConanFile):
 
         tools.patch(base_path=self._source_subfolder,
                     patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-for-conan.patch"))
+        tools.patch(base_path='contrib',
+                    patch_file=os.path.join("patches", "0001-fix-find_package-for-glog-gflags.patch"))
 
         cmake = self._configure_cmake()
         cmake.build()
