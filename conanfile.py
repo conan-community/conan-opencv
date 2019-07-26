@@ -240,10 +240,14 @@ class OpenCVConan(ConanFile):
         if self.options.gstreamer:
             cmake.definitions['HAVE_GSTREAMER'] = True
             cmake.definitions['GSTREAMER_VERSION'] = self.deps_cpp_info['gstreamer'].version
-            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(self.deps_cpp_info['gstreamer'].libs +
-                                                                self.deps_cpp_info['gst-plugins-base'].libs)
-            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['gstreamer'].include_paths +
-                                                                   self.deps_cpp_info['gst-plugins-base'].include_paths)
+            libs = []
+            includes = []
+            for dep in ['pcre', 'libffi', 'gettext', 'glib', 'gstreamer', 'gst-plugins-base']:
+                if dep in self.deps_cpp_info.deps:
+                    libs.extend(self.deps_cpp_info[dep].libs)
+                    includes.extend(self.deps_cpp_info[dep].include_paths)
+            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
+            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
 
         # system libraries
         if self.settings.os == 'Linux':
