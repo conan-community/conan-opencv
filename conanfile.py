@@ -310,7 +310,7 @@ class OpenCVConan(ConanFile):
                                   'imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
 
         tools.patch(base_path=self._source_subfolder,
-                    patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-for-conan.patch"))
+                    patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-to-respect-OPENEXR_ROOT.patch"))
         tools.patch(base_path='contrib',
                     patch_file=os.path.join("patches", "0001-fix-find_package-for-glog-gflags.patch"))
 
