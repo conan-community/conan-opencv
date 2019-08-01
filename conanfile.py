@@ -37,7 +37,8 @@ class OpenCVConan(ConanFile):
                "eigen": [True, False],
                "glog": [True, False],
                "gflags": [True, False],
-               "gstreamer": [True, False]}
+               "gstreamer": [True, False],
+               "openblas": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -59,7 +60,8 @@ class OpenCVConan(ConanFile):
                        "eigen": True,
                        'glog': True,
                        "gflags": True,
-                       "gstreamer": False}
+                       "gstreamer": False,
+                       "openblas": False}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -160,6 +162,8 @@ class OpenCVConan(ConanFile):
         if self.options.gstreamer:
             self.requires.add('gstreamer/1.16.0@bincrafters/stable')
             self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
+        if self.options.openblas:
+            self.requires.add('openblas/0.3.5@conan/stable')
         if self.options.contrib:
             if self.options.freetype:
                 self.requires.add('freetype/2.10.0@bincrafters/stable')
