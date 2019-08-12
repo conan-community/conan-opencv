@@ -38,7 +38,8 @@ class OpenCVConan(ConanFile):
                "glog": [True, False],
                "gflags": [True, False],
                "gstreamer": [True, False],
-               "openblas": [True, False]}
+               "openblas": [True, False],
+               "ffmpeg": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -61,7 +62,8 @@ class OpenCVConan(ConanFile):
                        'glog': True,
                        "gflags": True,
                        "gstreamer": False,
-                       "openblas": False}
+                       "openblas": False,
+                       "ffmpeg": False}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -164,6 +166,8 @@ class OpenCVConan(ConanFile):
             self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
         if self.options.openblas:
             self.requires.add('openblas/0.3.5@conan/stable')
+        if self.options.ffmpeg:
+            self.requires.add('ffmpeg/4.2@bincrafters/stable')
         if self.options.contrib:
             if self.options.freetype:
                 self.requires.add('freetype/2.10.0@bincrafters/stable')
@@ -225,7 +229,12 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_OPENEXR'] = self.options.openexr
         cmake.definitions["WITH_1394"] = self.options.dc1394
         cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
-        cmake.definitions['WITH_FFMPEG'] = False
+        cmake.definitions['WITH_FFMPEG'] = self.options.ffmpeg
+        cmake.definitions['HAVE_FFMPEG_WRAPPER'] = False
+        cmake.definitions['OPENCV_FFMPEG_SKIP_DOWNLOAD'] = True
+        cmake.definitions['OPENCV_FFMPEG_SKIP_BUILD_CHECK'] = True
+        cmake.definitions['OPENCV_FFMPEG_USE_FIND_PACKAGE'] = False
+        cmake.definitions['OPENCV_INSTALL_FFMPEG_DOWNLOAD_SCRIPT'] = False
         cmake.definitions['WITH_QUIRC'] = False
         cmake.definitions['WITH_CAROTENE'] = self.options.carotene
         cmake.definitions['WITH_CUDA'] = self.options.cuda
@@ -251,6 +260,12 @@ class OpenCVConan(ConanFile):
                     includes.extend(self.deps_cpp_info[dep].include_paths)
             cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
             cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
+        if self.options.ffmpeg:
+            for lib in ['avcodec', 'avformat', 'avutil', 'swscale', 'avresample']:
+                cmake.definitions['FFMPEG_lib%s_VERSION' % lib] = self.deps_cpp_info['ffmpeg'].version
+            cmake.definitions['HAVE_FFMPEG'] = True
+            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
+            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
         if self.options.contrib:
             # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
             if self.options.freetype:
