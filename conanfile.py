@@ -19,7 +19,8 @@ class OpenCVConan(ConanFile):
                "png": [True, False],
                "jasper": [True, False],
                "openexr": [True, False],
-               "gtk": [None, 2, 3]}
+               "gtk": [None, 2, 3],
+               "lapack": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -29,7 +30,8 @@ class OpenCVConan(ConanFile):
                        "png": True,
                        "jasper": True,
                        "openexr": True,
-                       "gtk": 3}
+                       "gtk": None,
+                       "lapack": False}
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     description = "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine " \
@@ -101,6 +103,8 @@ class OpenCVConan(ConanFile):
             self.requires.add('jasper/2.0.14@conan/stable')
         if self.options.openexr:
             self.requires.add('openexr/2.3.0@conan/stable')
+        if self.options.lapack:
+            self.requires.add('lapack/3.7.1@conan/stable')
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -142,11 +146,35 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_FFMPEG'] = False
         cmake.definitions["WITH_CAROTENE"] = False
         cmake.definitions['WITH_QUIRC'] = False
+        cmake.definitions['WITH_LAPACK'] = self.options.lapack
 
         cmake.definitions['WITH_DSHOW'] = self.settings.compiler == 'Visual Studio'
 
         if self.options.openexr:
             cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        if self.options.lapack:
+            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].libs)
+            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].lib_paths)
+            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
+            cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
+            cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
+            cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
+        if self.options.contrib:
+            # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
+            if self.options.freetype:
+                cmake.definitions['FREETYPE_FOUND'] = True
+                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
+                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
+            if self.options.harfbuzz:
+                cmake.definitions['HARFBUZZ_FOUND'] = True
+                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
+                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
+            if self.options.gflags:
+                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
+                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
+            if self.options.glog:
+                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
 
         # system libraries
         if self.settings.os == 'Linux':
