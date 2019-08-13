@@ -39,7 +39,8 @@ class OpenCVConan(ConanFile):
                "gflags": [True, False],
                "gstreamer": [True, False],
                "openblas": [True, False],
-               "ffmpeg": [True, False]}
+               "ffmpeg": [True, False],
+               "lapack": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -63,7 +64,8 @@ class OpenCVConan(ConanFile):
                        "gflags": True,
                        "gstreamer": False,
                        "openblas": False,
-                       "ffmpeg": False}
+                       "ffmpeg": False,
+                       "lapack": False}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -168,6 +170,8 @@ class OpenCVConan(ConanFile):
             self.requires.add('openblas/0.3.5@conan/stable')
         if self.options.ffmpeg:
             self.requires.add('ffmpeg/4.2@bincrafters/stable')
+        if self.options.lapack:
+            self.requires.add('lapack/3.7.1@conan/stable')
         if self.options.contrib:
             if self.options.freetype:
                 self.requires.add('freetype/2.10.0@bincrafters/stable')
@@ -241,6 +245,7 @@ class OpenCVConan(ConanFile):
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
         cmake.definitions['WITH_EIGEN'] = self.options.eigen
+        cmake.definitions['WITH_LAPACK'] = self.options.lapack
         
         # MinGW doesn't build wih Media Foundation
         cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
@@ -266,6 +271,13 @@ class OpenCVConan(ConanFile):
             cmake.definitions['HAVE_FFMPEG'] = True
             cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
             cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
+        if self.options.lapack:
+            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].libs)
+            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].lib_paths)
+            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
+            cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
+            cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
+            cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
         if self.options.contrib:
             # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
             if self.options.freetype:
