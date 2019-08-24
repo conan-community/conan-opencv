@@ -339,6 +339,10 @@ class OpenCVConan(ConanFile):
                                   'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
                                   'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/'
                                   'imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
+        if self.settings.os == "Windows":
+            tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
+                                  'ocv_update(OpenCV_INSTALL_BINARIES_PREFIX "${OpenCV_ARCH}/${OpenCV_RUNTIME}/")',
+                                  '')
 
         tools.patch(base_path=self._source_subfolder,
                     patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-to-respect-OPENEXR_ROOT.patch"))
