@@ -189,10 +189,8 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_TESTS'] = False
         cmake.definitions['BUILD_PERF_TESTS'] = False
         cmake.definitions['WITH_IPP'] = False
-        cmake.definitions['BUILD_IPP_IW'] = False
+        cmake.definitions['BUILD_JAVA'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
-        cmake.definitions['BUILD_opencv_java'] = False
-        cmake.definitions['BUILD_opencv_python'] = False
         cmake.definitions['BUILD_opencv_python2'] = False
         cmake.definitions['BUILD_opencv_python3'] = False
         cmake.definitions['INSTALL_C_EXAMPLES'] = False
@@ -220,7 +218,6 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_TBB'] = False
         cmake.definitions['BUILD_IPP_IW'] = False
         cmake.definitions['BUILD_ITT'] = False
-        cmake.definitions['BUILD_JPEG_TURBO_DISABLE'] = True
         cmake.definitions['BUILD_PROTOBUF'] = False
         cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
 
