@@ -249,7 +249,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
         cmake.definitions['WITH_EIGEN'] = self.options.eigen
         cmake.definitions['WITH_LAPACK'] = self.options.lapack
-        
+
         # MinGW doesn't build wih Media Foundation
         cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
 
@@ -423,7 +423,7 @@ class OpenCVConan(ConanFile):
                 "xobjdetect",
                 "xphoto",
                 "sfm"] + opencv_libs
-        
+
             if not self.options.freetype or not self.options.harfbuzz:
                 opencv_libs.remove("freetype")
             if not self.options.eigen or not self.options.glog or not self.options.gflags:
@@ -449,29 +449,6 @@ class OpenCVConan(ConanFile):
             ".", "") if self.settings.os == "Windows" else ""
         for lib in opencv_libs:
             self.cpp_info.libs.append("opencv_%s%s%s" % (lib, version, suffix))
-
-        opencv_lib = 'lib' if self.options.shared else 'staticlib'
-        opencv_arch = {'x86': 'x86',
-                       'x86_64': 'x64',
-                       'armv7': 'ARM',
-                       'armv8': 'ARM'}.get(str(self.settings.arch), None)
-        opencv_runtime = None
-        if self.settings.compiler == 'Visual Studio':
-            opencv_runtime = 'vc%s' % str(self.settings.compiler.version)
-            if self.options.cuda:
-                cuda_platform = {'x86': 'Win32',
-                                 'x86_64': 'x64'}.get(str(self.settings.arch))
-                cuda_path = os.environ.get('CUDA_PATH')
-                self.cpp_info.libdirs.append(os.path.join(cuda_path, "lib", cuda_platform))
-
-        if self.settings.os == "Windows" and self.settings.compiler == "gcc":
-            opencv_runtime = 'mingw'
-
-        if opencv_runtime:
-            bindir = os.path.join(self.package_folder, opencv_arch, opencv_runtime, 'bin')
-            libdir = os.path.join(self.package_folder, opencv_arch, opencv_runtime, opencv_lib)
-            self.cpp_info.bindirs.append(bindir)
-            self.cpp_info.libdirs.append(libdir)
 
         if self.options.cuda:
             self.cpp_info.libs.extend(["nvrtc", "cudart", "cuda"])
