@@ -4,7 +4,6 @@ from conans import ConanFile, CMake, tools
 from conans.model.version import Version
 from conans.errors import ConanInvalidConfiguration
 import os
-import shutil
 
 
 class OpenCVConan(ConanFile):
