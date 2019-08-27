@@ -187,6 +187,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['OPENCV_CONFIG_INSTALL_PATH'] = "cmake"
         cmake.definitions['OPENCV_BIN_INSTALL_PATH'] = "bin"
         cmake.definitions['OPENCV_LIB_INSTALL_PATH'] = "lib"
+        cmake.definitions['OPENCV_3P_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['BUILD_EXAMPLES'] = False
         cmake.definitions['BUILD_DOCS'] = False
         cmake.definitions['BUILD_TESTS'] = False
