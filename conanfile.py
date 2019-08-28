@@ -189,6 +189,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['OPENCV_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['OPENCV_3P_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['OPENCV_OTHER_INSTALL_PATH'] = "res"
+        cmake.definitions['OPENCV_LICENSES_INSTALL_PATH'] = "licenses"
         cmake.definitions['BUILD_EXAMPLES'] = False
         cmake.definitions['BUILD_DOCS'] = False
         cmake.definitions['BUILD_TESTS'] = False
@@ -358,8 +359,6 @@ class OpenCVConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.install()
         cmake.patch_config_paths()
-        self.copy("*", dst="licenses", src=os.path.join(self.package_folder, "res", "licenses"))
-        tools.rmdir(os.path.join(self.package_folder, "res", "licenses"))
 
     def add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)
