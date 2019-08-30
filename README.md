@@ -58,7 +58,7 @@ The following command both runs all the steps of the conan file, and publishes t
 | png      | True |  [True, False] | Build with libpng |
 | jasper      | True |  [True, False] | Build with jasper |
 | openexr      | True |  [True, False] | Build with openexr |
-| gtk      | None |  [None, 2, 3] | Build with system GTK-2.0 or GTK-3 |
+| gtk      | 3 |  [None, 2, 3] | Build with system GTK-2.0 or GTK-3 |
 
 
 ## Add Remote
