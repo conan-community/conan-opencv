@@ -20,14 +20,14 @@ If you wish to report an issue or make a request for a package, please do so her
 
 ### Basic setup
 
-    $ conan install opencv/4.0.1@conan/stable
+    $ conan install opencv/4.1.1@conan/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    opencv/4.0.1@conan/stable
+    opencv/4.1.1@conan/stable
 
     [generators]
     cmake
@@ -49,17 +49,31 @@ The following command both runs all the steps of the conan file, and publishes t
 ### Available Options
 | Option        | Default | Possible Values  | Description |
 | ------------- |:----------------- |:------------:| ----- |
-| shared      | False |  [True, False] | |
-| fPIC      | True |  [True, False] | |
-| contrib      | False |  [True, False] | |
-| jpeg      | True |  [True, False] | |
-| tiff      | True |  [True, False] | |
-| webp      | True |  [True, False] | |
-| png      | True |  [True, False] | |
-| jasper      | True |  [True, False] | |
-| openexr      | True |  [True, False] | |
-| gtk      | None |  [None, 2, 3] | |
+| shared      | False |  [True, False] | Build shared libraries only |
+| fPIC      | True |  [True, False] | Compile with -fPIC (Linux only) |
+| contrib      | False |  [True, False] | Build OpenCV contrib from sources |
+| jpeg      | True |  [True, False] | Build with libjpeg |
+| jpegturbo | False |  [True, False] | Build with libjpeg-turbo |
+| tiff      | True |  [True, False] | Build with libtiff |
+| webp      | True |  [True, False] | Build with libwebp |
+| png      | True |  [True, False] | Build with libpng |
+| jasper      | True |  [True, False] | Build with jasper |
+| openexr      | True |  [True, False] | Build with openexr |
+| gtk      | None |  [None, 2, 3] | Build with system GTK-2.0 or GTK-3 |
 | nonfree | False | [True, False] | Include non-free features in the build. This is required to use patented algorithms such as SIFT, SURF or KinectFusion. |
+| dc1394      | True |  [True, False] | Build with DC1394 (DCAM) |
+| carotene      | False |  [True, False] | Use NVidia carotene acceleration library for ARM platform |
+| cuda      | False |  [True, False] | Include NVidia Cuda Runtime support |
+| protobuf      | True |  [True, False] | Build with libprotobuf |
+| freetype      | True |  [True, False] | Build with freetype |
+| harfbuzz      | True |  [True, False] | Build with harfbuzz |
+| eigen      | True |  [True, False] | Include Eigen2/Eigen3 support |
+| glog      | True |  [True, False] | Build with glog |
+| gflags      | True |  [True, False] | Build with gflags |
+| gstreamer      | False |  [True, False] | Include Gstreamer support |
+| openblas      | False |  [True, False] | Build with openblas |
+| ffmpeg      | False |  [True, False] | Build with ffmpeg |
+| lapack      | False |  [True, False] | Build with lapack |
 
 
 ## Add Remote
