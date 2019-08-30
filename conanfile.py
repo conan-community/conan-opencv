@@ -331,6 +331,9 @@ class OpenCVConan(ConanFile):
                 cmake.definitions['ANDROID_NDK'] = os.environ.get(
                     'ANDROID_NDK_HOME')
 
+        if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
+            cmake.definitions['IOS'] = True
+
         cmake.configure(build_folder=self._build_subfolder)
         return cmake
 
