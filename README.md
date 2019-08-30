@@ -47,18 +47,18 @@ The following command both runs all the steps of the conan file, and publishes t
 
 
 ### Available Options
-| Option        | Default | Possible Values  |
-| ------------- |:----------------- |:------------:|
-| shared      | False |  [True, False] |
-| fPIC      | True |  [True, False] |
-| contrib      | False |  [True, False] |
-| jpeg      | True |  [True, False] |
-| tiff      | True |  [True, False] |
-| webp      | True |  [True, False] |
-| png      | True |  [True, False] |
-| jasper      | True |  [True, False] |
-| openexr      | True |  [True, False] |
-| gtk      | 3 |  [None, 2, 3] |
+| Option        | Default | Possible Values  | Description |
+| ------------- |:----------------- |:------------:| ----- |
+| shared      | False |  [True, False] | Build shared libraries only |
+| fPIC      | True |  [True, False] | Compile with -fPIC (Linux only) |
+| contrib      | False |  [True, False] | Build OpenCV contrib from sources |
+| jpeg      | True |  [True, False] | Build with libjpeg |
+| tiff      | True |  [True, False] | Build with libtiff |
+| webp      | True |  [True, False] | Build with libwebp |
+| png      | True |  [True, False] | Build with libpng |
+| jasper      | True |  [True, False] | Build with jasper |
+| openexr      | True |  [True, False] | Build with openexr |
+| gtk      | None |  [None, 2, 3] | Build with system GTK-2.0 or GTK-3 |
 
 
 ## Add Remote
