@@ -4,7 +4,7 @@
 
 ## Conan package recipe for [*opencv*](https://github.com/opencv/opencv)
 
-OpenCV (Open Source Computer Vision Library)
+OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 
 The packages generated with this **conanfile** can be found on [Bintray](https://bintray.com/conan-community/conan/opencv%3Aconan).
 
@@ -20,14 +20,14 @@ If you wish to report an issue or make a request for a package, please do so her
 
 ### Basic setup
 
-    $ conan install opencv/2.4.13.5@conan/stable
+    $ conan install opencv/2.4.13@conan/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    opencv/2.4.13.5@conan/stable
+    opencv/2.4.13@conan/stable
 
     [generators]
     cmake
@@ -47,16 +47,15 @@ The following command both runs all the steps of the conan file, and publishes t
 
 
 ### Available Options
-| Option        | Default | Possible Values  |
-| ------------- |:----------------- |:------------:|
-| shared      | False |  [True, False] |
-| fPIC      | True |  [True, False] |
-| jpeg      | True |  [True, False] |
-| png      | True |  [True, False] |
-| tiff      | True |  [True, False] |
-| jasper      | True |  [True, False] |
-| openexr      | True |  [True, False] |
-
+| Option        | Default | Possible Values  | Description |
+| ------------- |:----------------- |:------------:| ----- |
+| shared      | False |  [True, False] | Build shared libraries only |
+| fPIC      | True |  [True, False] | Compile with -fPIC (Linux only) |
+| jpeg      | True |  [True, False] | Build with libjpeg |
+| png      | True |  [True, False] | Build with libpng |
+| tiff      | True |  [True, False] | Build with libtiff |
+| jasper      | True |  [True, False] | Build with jasper |
+| openexr      | True |  [True, False] | Build with openexr |
 
 ## Add Remote
 
