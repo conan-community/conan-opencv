@@ -190,20 +190,29 @@ class OpenCVConan(ConanFile):
         cmake.definitions['OPENCV_3P_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['OPENCV_OTHER_INSTALL_PATH'] = "res"
         cmake.definitions['OPENCV_LICENSES_INSTALL_PATH'] = "licenses"
-        cmake.definitions['BUILD_EXAMPLES'] = False
-        cmake.definitions['BUILD_DOCS'] = False
-        cmake.definitions['BUILD_TESTS'] = False
-        cmake.definitions['BUILD_PERF_TESTS'] = False
         cmake.definitions['WITH_IPP'] = False
-        cmake.definitions['BUILD_JAVA'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
+        
+        # We are building C++ only. Disable other languages
+        cmake.definitions['BUILD_JAVA'] = False
+        cmake.definitions['BUILD_opencv_java_bindings_generator'] = False
+        cmake.definitions['BUILD_opencv_js'] = False
         cmake.definitions['BUILD_opencv_python2'] = False
         cmake.definitions['BUILD_opencv_python3'] = False
+        cmake.definitions['BUILD_opencv_python_bindings_generator'] = False
+        cmake.definitions['BUILD_opencv_python_tests'] = False
+
+        # Don't build test
+        cmake.definitions['BUILD_TESTS'] = False
+        cmake.definitions['BUILD_PERF_TESTS'] = False
+        cmake.definitions['BUILD_opencv_ts'] = False
+        cmake.definitions['INSTALL_TESTS'] = False
+
+        # Don't install docs and examples
+        cmake.definitions['BUILD_DOCS'] = False
+        cmake.definitions['BUILD_EXAMPLES'] = False
         cmake.definitions['INSTALL_C_EXAMPLES'] = False
         cmake.definitions['INSTALL_PYTHON_EXAMPLES'] = False
-        cmake.definitions['BUILD_opencv_python_bindings_generator'] = False
-        cmake.definitions['BUILD_opencv_js'] = False
-        cmake.definitions['BUILD_opencv_java_bindings_generator'] = False
 
         if self.settings.compiler == 'Visual Studio':
             cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(
@@ -314,7 +323,6 @@ class OpenCVConan(ConanFile):
             cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
             cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
 
-            cmake.definitions['BUILD_PERF_TESTS'] = False
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
 
             arch = str(self.settings.arch)
