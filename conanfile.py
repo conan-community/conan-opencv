@@ -155,6 +155,7 @@ class OpenCVConan(ConanFile):
             self.requires.add('libpng/1.6.37@bincrafters/stable')
         if self.options.jasper:
             self.requires.add('jasper/2.0.14@conan/stable')
+            self.options["jasper"].jpegturbo = self.options.jpegturbo
         if self.options.openexr:
             self.requires.add('openexr/2.3.0@conan/stable')
         if self.options.protobuf:
