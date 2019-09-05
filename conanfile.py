@@ -150,7 +150,7 @@ class OpenCVConan(ConanFile):
         if self.options.tiff:
             self.requires.add('libtiff/4.0.9@bincrafters/stable')
         if self.options.webp:
-            self.requires.add('libwebp/1.0.0@bincrafters/stable')
+            self.requires.add('libwebp/1.0.3@bincrafters/stable')
         if self.options.png:
             self.requires.add('libpng/1.6.37@bincrafters/stable')
         if self.options.jasper:
