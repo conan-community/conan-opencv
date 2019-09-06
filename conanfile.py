@@ -185,15 +185,29 @@ class OpenCVConan(ConanFile):
 
     def _configure_cmake(self):
         cmake = CMake(self)
+
+        # General configuration
         cmake.definitions['OPENCV_CONFIG_INSTALL_PATH'] = "cmake"
         cmake.definitions['OPENCV_BIN_INSTALL_PATH'] = "bin"
         cmake.definitions['OPENCV_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['OPENCV_3P_LIB_INSTALL_PATH'] = "lib"
         cmake.definitions['OPENCV_OTHER_INSTALL_PATH'] = "res"
         cmake.definitions['OPENCV_LICENSES_INSTALL_PATH'] = "licenses"
-        cmake.definitions['WITH_IPP'] = False
         cmake.definitions['BUILD_opencv_apps'] = False
-        
+
+        # Compiler configuration
+        if self.settings.compiler == 'Visual Studio':
+            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(
+                self.settings.compiler.runtime)
+
+        cmake.definitions['WITH_DSHOW'] = self.settings.compiler == 'Visual Studio'
+        # MinGW doesn't build wih Media Foundation
+        cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
+        cmake.definitions['WITH_MSMF_DXVA '] = self.settings.compiler == 'Visual Studio'
+
+        if self.settings.os != 'Windows':
+            cmake.definitions['ENABLE_PIC'] = self.options.fPIC
+
         # We are building C++ only. Disable other languages
         cmake.definitions['BUILD_JAVA'] = False
         cmake.definitions['BUILD_opencv_java_bindings_generator'] = False
@@ -203,7 +217,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_opencv_python_bindings_generator'] = False
         cmake.definitions['BUILD_opencv_python_tests'] = False
 
-        # Don't build test
+        # Don't build tests
         cmake.definitions['BUILD_TESTS'] = False
         cmake.definitions['BUILD_PERF_TESTS'] = False
         cmake.definitions['BUILD_opencv_ts'] = False
@@ -215,58 +229,36 @@ class OpenCVConan(ConanFile):
         cmake.definitions['INSTALL_C_EXAMPLES'] = False
         cmake.definitions['INSTALL_PYTHON_EXAMPLES'] = False
 
-        if self.settings.compiler == 'Visual Studio':
-            cmake.definitions['BUILD_WITH_STATIC_CRT'] = 'MT' in str(
-                self.settings.compiler.runtime)
-        if self.settings.os != 'Windows':
-            cmake.definitions['ENABLE_PIC'] = self.options.fPIC
+        # 3rd-party libraries and configurations
 
-        # 3rd-party
+        # Disable builds for all 3rd-party components, use libraries from conan only
+        cmake.definitions['OPENCV_FORCE_3RDPARTY_BUILD'] = False
 
-        # disable builds for all 3rd-party components, use libraries from conan only
-        cmake.definitions['BUILD_ZLIB'] = False
-        cmake.definitions['BUILD_TIFF'] = False
-        cmake.definitions['BUILD_JASPER'] = False
-        cmake.definitions['BUILD_JPEG'] = False
-        cmake.definitions['BUILD_PNG'] = False
-        cmake.definitions['BUILD_OPENEXR'] = False
-        cmake.definitions['BUILD_WEBP'] = False
-        cmake.definitions['BUILD_TBB'] = False
-        cmake.definitions['BUILD_IPP_IW'] = False
-        cmake.definitions['BUILD_ITT'] = False
-        cmake.definitions['BUILD_PROTOBUF'] = False
-        cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
-
-        cmake.definitions['WITH_GSTREAMER'] = self.options.gstreamer
-        cmake.definitions['WITH_JPEG'] = self.options.jpeg
-        cmake.definitions['WITH_TIFF'] = self.options.tiff
-        cmake.definitions['WITH_WEBP'] = self.options.webp
-        cmake.definitions['WITH_PNG'] = self.options.png
-        cmake.definitions['WITH_JASPER'] = self.options.jasper
-        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
+        # IEEE1394
         cmake.definitions["WITH_1394"] = self.options.dc1394
-        cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
-        cmake.definitions['WITH_FFMPEG'] = self.options.ffmpeg
-        cmake.definitions['HAVE_FFMPEG_WRAPPER'] = False
-        cmake.definitions['OPENCV_FFMPEG_SKIP_DOWNLOAD'] = True
-        cmake.definitions['OPENCV_FFMPEG_SKIP_BUILD_CHECK'] = True
-        cmake.definitions['OPENCV_FFMPEG_USE_FIND_PACKAGE'] = False
-        cmake.definitions['OPENCV_INSTALL_FFMPEG_DOWNLOAD_SCRIPT'] = False
-        cmake.definitions['WITH_QUIRC'] = False
+
+        # NVidia Carotene
         cmake.definitions['WITH_CAROTENE'] = self.options.carotene
-        cmake.definitions['WITH_CUDA'] = self.options.cuda
-        # This allows compilation on older GCC/NVCC, otherwise build errors.
-        cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+
+        # Eigen
         cmake.definitions['WITH_EIGEN'] = self.options.eigen
-        cmake.definitions['WITH_LAPACK'] = self.options.lapack
 
-        # MinGW doesn't build wih Media Foundation
-        cmake.definitions['WITH_MSMF'] = self.settings.compiler == 'Visual Studio'
+        # FFMPEG
+        cmake.definitions['WITH_FFMPEG'] = self.options.ffmpeg
+        if self.options.ffmpeg:
+            cmake.definitions['HAVE_FFMPEG'] = True
+            cmake.definitions['HAVE_FFMPEG_WRAPPER'] = False
+            cmake.definitions['OPENCV_FFMPEG_SKIP_BUILD_CHECK'] = True
+            cmake.definitions['OPENCV_FFMPEG_SKIP_DOWNLOAD'] = True
+            cmake.definitions['OPENCV_FFMPEG_USE_FIND_PACKAGE'] = False
+            cmake.definitions['OPENCV_INSTALL_FFMPEG_DOWNLOAD_SCRIPT'] = False
+            for lib in ['avcodec', 'avformat', 'avutil', 'swscale', 'avresample']:
+                cmake.definitions['FFMPEG_lib%s_VERSION' % lib] = self.deps_cpp_info['ffmpeg'].version
+            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
+            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
 
-        cmake.definitions['WITH_DSHOW'] = self.settings.compiler == 'Visual Studio'
-
-        if self.options.openexr:
-            cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        # GStreamer
+        cmake.definitions['WITH_GSTREAMER'] = self.options.gstreamer
         if self.options.gstreamer:
             cmake.definitions['HAVE_GSTREAMER'] = True
             cmake.definitions['GSTREAMER_VERSION'] = self.deps_cpp_info['gstreamer'].version
@@ -278,47 +270,97 @@ class OpenCVConan(ConanFile):
                     includes.extend(self.deps_cpp_info[dep].include_paths)
             cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
             cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
-        if self.options.ffmpeg:
-            for lib in ['avcodec', 'avformat', 'avutil', 'swscale', 'avresample']:
-                cmake.definitions['FFMPEG_lib%s_VERSION' % lib] = self.deps_cpp_info['ffmpeg'].version
-            cmake.definitions['HAVE_FFMPEG'] = True
-            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
-            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
+
+        # Intel IPP
+        cmake.definitions['BUILD_IPP_IW'] = False
+        cmake.definitions['BUILD_WITH_DYNAMIC_IPP'] = False
+        cmake.definitions['WITH_IPP'] = False
+
+        # Intel ITT
+        cmake.definitions['BUILD_ITT'] = False
+        cmake.definitions['WITH_ITT'] = False
+
+        # jasper
+        cmake.definitions['BUILD_JASPER'] = False
+        cmake.definitions['WITH_JASPER'] = self.options.jasper
+
+        # JPEG
+        cmake.definitions['BUILD_JPEG'] = False
+        cmake.definitions['WITH_JPEG'] = self.options.jpeg
+
+        # LAPACK
+        cmake.definitions['WITH_LAPACK'] = self.options.lapack
         if self.options.lapack:
+            cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
+            cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
+            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
+            cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
             cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].libs)
             cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].lib_paths)
-            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
-            cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
-            cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
-            cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
+
+        # OpenEXR
+        cmake.definitions['BUILD_OPENEXR'] = False
+        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
+        if self.options.openexr:
+            cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+
+        # PNG
+        cmake.definitions['BUILD_PNG'] = False
+        cmake.definitions['WITH_PNG'] = self.options.png
+
+        # Protobuf
+        cmake.definitions['BUILD_PROTOBUF'] = False
+        cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
+        cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
+
+        # Intel TBB
+        cmake.definitions['BUILD_TBB'] = False
+        cmake.definitions['WITH_TBB'] = False
+
+        # quirc
+        cmake.definitions['WITH_QUIRC'] = False
+
+        # TIFF
+        cmake.definitions['BUILD_TIFF'] = False
+        cmake.definitions['WITH_TIFF'] = self.options.tiff
+
+        # WebP
+        cmake.definitions['BUILD_WEBP'] = False
+        cmake.definitions['WITH_WEBP'] = self.options.webp
+
+        # zlib
+        cmake.definitions['BUILD_ZLIB'] = False
+
+        # NVidia CUDA
+        cmake.definitions['WITH_CUDA'] = self.options.cuda
+        # This allows compilation on older GCC/NVCC, otherwise build errors.
+        cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+
+        # opencv-conrib modules
         if self.options.contrib:
+            cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(self.build_folder, 'contrib', 'modules')
+            cmake.definitions['OPENCV_ENABLE_NONFREE'] = self.options.nonfree
+
             # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
             if self.options.freetype:
                 cmake.definitions['FREETYPE_FOUND'] = True
-                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
                 cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
+                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
             if self.options.harfbuzz:
                 cmake.definitions['HARFBUZZ_FOUND'] = True
-                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
                 cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
+                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
             if self.options.gflags:
-                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
                 cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
+                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
             if self.options.glog:
-                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
                 cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
+                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
 
         # system libraries
         if self.settings.os == 'Linux':
             cmake.definitions['WITH_GTK'] = self.options.gtk is not None
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
-
-        if self.options.contrib:
-            cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(
-                self.build_folder, 'contrib', 'modules')
-
-        if self.options.nonfree:
-            cmake.definitions['OPENCV_ENABLE_NONFREE'] = True
 
         if self.settings.os == 'Android':
             cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
