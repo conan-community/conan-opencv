@@ -40,7 +40,8 @@ class OpenCVConan(ConanFile):
                "gstreamer": [True, False],
                "openblas": [True, False],
                "ffmpeg": [True, False],
-               "lapack": [True, False]}
+               "lapack": [True, False],
+               "quirc": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -65,7 +66,8 @@ class OpenCVConan(ConanFile):
                        "gstreamer": False,
                        "openblas": False,
                        "ffmpeg": False,
-                       "lapack": False}
+                       "lapack": False,
+                       "quirc": True}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -318,7 +320,7 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_TBB'] = False
 
         # quirc
-        cmake.definitions['WITH_QUIRC'] = False
+        cmake.definitions['WITH_QUIRC'] = self.options.quirc
 
         # TIFF
         cmake.definitions['BUILD_TIFF'] = False

@@ -74,6 +74,7 @@ The following command both runs all the steps of the conan file, and publishes t
 | openblas      | False |  [True, False] | Build with openblas |
 | ffmpeg      | False |  [True, False] | Build with ffmpeg |
 | lapack      | False |  [True, False] | Build with lapack |
+| quirc       | True |  [True, False] | Build with QR-code decoding library |
 
 
 ## Add Remote
