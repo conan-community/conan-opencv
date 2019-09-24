@@ -185,6 +185,15 @@ class OpenCVConan(ConanFile):
             if self.options.gflags:
                 self.requires.add('gflags/2.2.2@bincrafters/stable')
 
+    @property
+    def _android_arch(self):
+        arch = str(self.settings.arch)
+        return {'armv5': 'armeabi',
+                'armv6': 'armeabi-v6',
+                'armv7': 'armeabi-v7a',
+                'armv7hf': 'armeabi-v7a',
+                'armv8': 'arm64-v8a'}.get(arch, arch)
+
     def _configure_cmake(self):
         cmake = CMake(self)
 
@@ -365,20 +374,12 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         if self.settings.os == 'Android':
-            cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
+            cmake.definitions['ANDROID_STL'] = "c++_static"
             cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
 
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
 
-            arch = str(self.settings.arch)
-            if arch.startswith(('armv7', 'armv8')):
-                cmake.definitions['ANDROID_ABI'] = 'NEON'
-            else:
-                cmake.definitions['ANDROID_ABI'] = {'armv5': 'armeabi',
-                                                    'armv6': 'armeabi-v6',
-                                                    'armv7': 'armeabi-v7a',
-                                                    'armv7hf': 'armeabi-v7a',
-                                                    'armv8': 'arm64-v8a'}.get(arch, arch)
+            cmake.definitions['ANDROID_ABI'] = self._android_arch
 
             if 'ANDROID_NDK_HOME' in os.environ:
                 cmake.definitions['ANDROID_NDK'] = os.environ.get(
@@ -535,7 +536,7 @@ class OpenCVConan(ConanFile):
             self.cpp_info.includedirs.append(
                 os.path.join('sdk', 'native', 'jni', 'include'))
             self.cpp_info.libdirs.append(
-                os.path.join('sdk', 'native', 'staticlibs'))
+                os.path.join('sdk', 'native', 'staticlibs', self._android_arch))
         else:
             self.cpp_info.includedirs.append(
                 os.path.join('include', 'opencv4'))
