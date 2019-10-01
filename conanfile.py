@@ -435,9 +435,9 @@ class OpenCVConan(ConanFile):
                        "flann",
                        "imgcodecs",
                        "objdetect",
+                       "dnn",
                        "imgproc",
-                       "core",
-                       "dnn"]
+                       "core"]
 
         if not self.options.protobuf:
             opencv_libs.remove("dnn")
