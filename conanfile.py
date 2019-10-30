@@ -193,6 +193,10 @@ class OpenCVConan(ConanFile):
         arch = str(self.settings.arch)
         return tools.to_android_abi(arch)
 
+    @property
+    def _use_mingw(self):
+        return self.settings.os == "Windows" and self.settings.compiler == "gcc"
+
     def _configure_cmake(self):
         cmake = CMake(self)
 
@@ -392,6 +396,11 @@ class OpenCVConan(ConanFile):
                                   'ocv_define_module(imgproc opencv_core WRAP java python js)\n'
                                   'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/'
                                   'imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
+
+        # using -isystem will make mingw gcc fail to build
+        if self._use_mingw:
+            tools.replace_in_file(os.path.join(self._source_subfolder, 'cmake', 'OpenCVPCHSupport.cmake'),
+                "ocv_is_opencv_directory(__result ${item})", "set(__result TRUE)")
 
         tools.patch(base_path=self._source_subfolder,
                     patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-to-respect-OPENEXR_ROOT.patch"))
