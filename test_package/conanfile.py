@@ -21,6 +21,8 @@ class TestPackageConan(ConanFile):
         self.copy("*lbpcascade_*.xml", os.path.join('bin', 'lbpcascades'), keep_path=False)
 
     def test(self):
+        if tools.cross_building(self.settings):
+            return
         img_path = os.path.join(self.source_folder, "lena.jpg")
         shutil.copy(img_path, 'bin')
         with tools.chdir('bin'):

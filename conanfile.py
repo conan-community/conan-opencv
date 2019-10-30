@@ -108,6 +108,9 @@ class OpenCVConan(ConanFile):
             del self.options.fPIC
         if self.settings.os != 'Linux':
             del self.options.gtk
+        # https://github.com/openexr/openexr/issues/221
+        if tools.cross_building(self.settings):
+            del self.options.openexr
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -158,7 +161,7 @@ class OpenCVConan(ConanFile):
         if self.options.jasper:
             self.requires.add('jasper/2.0.14@conan/stable')
             self.options["jasper"].jpegturbo = self.options.jpegturbo
-        if self.options.openexr:
+        if not tools.cross_building(self.settings) and self.options.openexr:
             self.requires.add('openexr/2.3.0@conan/stable')
         if self.options.protobuf:
             # NOTE : version should be the same as used in OpenCV release,
@@ -188,11 +191,7 @@ class OpenCVConan(ConanFile):
     @property
     def _android_arch(self):
         arch = str(self.settings.arch)
-        return {'armv5': 'armeabi',
-                'armv6': 'armeabi-v6',
-                'armv7': 'armeabi-v7a',
-                'armv7hf': 'armeabi-v7a',
-                'armv8': 'arm64-v8a'}.get(arch, arch)
+        return tools.to_android_abi(arch)
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -311,9 +310,10 @@ class OpenCVConan(ConanFile):
 
         # OpenEXR
         cmake.definitions['BUILD_OPENEXR'] = False
-        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
-        if self.options.openexr:
-            cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        if not tools.cross_building(self.settings):
+            cmake.definitions['WITH_OPENEXR'] = self.options.openexr
+            if self.options.openexr:
+                cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
 
         # PNG
         cmake.definitions['BUILD_PNG'] = False
@@ -374,16 +374,7 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         if self.settings.os == 'Android':
-            cmake.definitions['ANDROID_STL'] = "c++_static"
-            cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
-
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
-
-            cmake.definitions['ANDROID_ABI'] = self._android_arch
-
-            if 'ANDROID_NDK_HOME' in os.environ:
-                cmake.definitions['ANDROID_NDK'] = os.environ.get(
-                    'ANDROID_NDK_HOME')
 
         if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
             cmake.definitions['IOS'] = True
@@ -532,11 +523,13 @@ class OpenCVConan(ConanFile):
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
         elif self.settings.os == 'Windows':
             self.cpp_info.libs.append('Vfw32')
-        if self.settings.os == 'Android' and not self.options.shared:
-            self.cpp_info.includedirs.append(
-                os.path.join('sdk', 'native', 'jni', 'include'))
-            self.cpp_info.libdirs.append(
-                os.path.join('sdk', 'native', 'staticlibs', self._android_arch))
+        if self.settings.os == 'Android':
+            self.cpp_info.libs.append('log')
+            if not self.options.shared:
+                self.cpp_info.includedirs.append(
+                    os.path.join('sdk', 'native', 'jni', 'include'))
+                self.cpp_info.libdirs.append(
+                    os.path.join('sdk', 'native', 'staticlibs', self._android_arch))
         else:
             self.cpp_info.includedirs.append(
                 os.path.join('include', 'opencv4'))
