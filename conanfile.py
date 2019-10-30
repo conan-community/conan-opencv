@@ -314,6 +314,8 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_OPENEXR'] = self.options.openexr
             if self.options.openexr:
                 cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        else:
+            cmake.definitions['WITH_OPENEXR'] = False
 
         # PNG
         cmake.definitions['BUILD_PNG'] = False
