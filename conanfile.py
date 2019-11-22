@@ -404,6 +404,8 @@ class OpenCVConan(ConanFile):
 
         tools.patch(base_path=self._source_subfolder,
                     patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-to-respect-OPENEXR_ROOT.patch"))
+        tools.patch(base_path=self._source_subfolder,
+                    patch_file=os.path.join("patches", "fix-android-armv7-c++_static-init-crash.patch"))
         tools.patch(base_path='contrib',
                     patch_file=os.path.join("patches", "0001-fix-find_package-for-glog-gflags.patch"))
 
