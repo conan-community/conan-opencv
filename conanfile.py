@@ -159,7 +159,7 @@ class OpenCVConan(ConanFile):
             self.requires.add('jasper/2.0.14')
             self.options["jasper"].jpegturbo = self.options.jpegturbo
         if self.options.openexr:
-            self.requires.add('openexr/2.3.0@conan/stable')
+            self.requires.add('openexr/2.3.0')
         if self.options.protobuf:
             # NOTE : version should be the same as used in OpenCV release,
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
