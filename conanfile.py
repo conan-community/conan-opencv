@@ -543,5 +543,7 @@ class OpenCVConan(ConanFile):
                 os.path.join('lib', 'opencv4', '3rdparty'))
             if not self.options.shared:
                 self.cpp_info.libs.append('ade')
+                if self.options.quirc:
+                    self.cpp_info.libs.append('quirc%s' % suffix)
         if self.options.contrib and self.options.eigen and self.options.glog and self.options.gflags:
             self.cpp_info.libs.append('multiview')
