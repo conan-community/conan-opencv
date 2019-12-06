@@ -141,25 +141,25 @@ class OpenCVConan(ConanFile):
                     installer.install(package)
 
     def requirements(self):
-        self.requires.add('zlib/1.2.11@conan/stable')
+        self.requires.add('zlib/1.2.11')
         if self.options.jpeg:
             # NOTE : use the same libjpeg implementation as jasper uses
             # otherwise, jpeg_create_decompress will fail on version check
             if self.options.jpegturbo:
-                self.requires.add('libjpeg-turbo/1.5.2@bincrafters/stable')
+                self.requires.add('libjpeg-turbo/1.5.2')
             else:
-                self.requires.add('libjpeg/9c@bincrafters/stable')
+                self.requires.add('libjpeg/9c')
         if self.options.tiff:
-            self.requires.add('libtiff/4.0.9@bincrafters/stable')
+            self.requires.add('libtiff/4.0.9')
         if self.options.webp:
-            self.requires.add('libwebp/1.0.3@bincrafters/stable')
+            self.requires.add('libwebp/1.0.3')
         if self.options.png:
-            self.requires.add('libpng/1.6.37@bincrafters/stable')
+            self.requires.add('libpng/1.6.37')
         if self.options.jasper:
-            self.requires.add('jasper/2.0.14@conan/stable')
+            self.requires.add('jasper/2.0.14')
             self.options["jasper"].jpegturbo = self.options.jpegturbo
         if self.options.openexr:
-            self.requires.add('openexr/2.3.0@conan/stable')
+            self.requires.add('openexr/2.3.0')
         if self.options.protobuf:
             # NOTE : version should be the same as used in OpenCV release,
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
@@ -177,13 +177,13 @@ class OpenCVConan(ConanFile):
             self.requires.add('lapack/3.7.1@conan/stable')
         if self.options.contrib:
             if self.options.freetype:
-                self.requires.add('freetype/2.10.0@bincrafters/stable')
+                self.requires.add('freetype/2.10.0')
             if self.options.harfbuzz:
                 self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
             if self.options.glog:
-                self.requires.add('glog/0.4.0@bincrafters/stable')
+                self.requires.add('glog/0.4.0')
             if self.options.gflags:
-                self.requires.add('gflags/2.2.2@bincrafters/stable')
+                self.requires.add('gflags/2.2.2')
 
     def _configure_cmake(self):
         cmake = CMake(self)
