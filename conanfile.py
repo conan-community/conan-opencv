@@ -506,7 +506,7 @@ class OpenCVConan(ConanFile):
                             "cudev"
                             ] + opencv_libs
 
-        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
+        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.os == "Windows" else ''
         version = self.version.replace(
             ".", "") if self.settings.os == "Windows" else ""
         for lib in opencv_libs:
