@@ -11,7 +11,7 @@ class OpenCVConan(ConanFile):
     version = "4.1.1"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
-    url = "https://github.com/DoDoENT/conan-opencv"
+    url = "https://github.com/conan-community/conan-opencv"
     author = "Conan Community"
     topics = ("conan", "opencv", "computer-vision",
               "image-processing", "deep-learning")
