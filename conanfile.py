@@ -11,7 +11,7 @@ class OpenCVConan(ConanFile):
     version = "4.1.1"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
-    url = "https://github.com/conan-community/conan-opencv"
+    url = "https://github.com/DoDoENT/conan-opencv"
     author = "Conan Community"
     topics = ("conan", "opencv", "computer-vision",
               "image-processing", "deep-learning")
@@ -209,6 +209,20 @@ class OpenCVConan(ConanFile):
 
         if self.settings.os != 'Windows':
             cmake.definitions['ENABLE_PIC'] = self.options.fPIC
+
+        # Disable modules and options that are not compatible with Emscripten
+        if self.settings.os == 'Emscripten':
+            cmake.definitions['BUILD_opencv_videoio'] = False
+            cmake.definitions['WITH_OPENCL'] = False
+            cmake.definitions['WITH_OPENCLAMDBLAS'] = False
+            cmake.definitions['WITH_OPENCLAMDFFT'] = False
+            cmake.definitions['WITH_PTHREADS_PF'] = False
+            cmake.definitions['WITH_V4L'] = False
+            cmake.definitions['WITH_GTK'] = False
+            cmake.definitions['WITH_IMGCODEC_HDR'] = False
+            cmake.definitions['WITH_IMGCODEC_PFM'] = False
+            cmake.definitions['WITH_IMGCODEC_PXM'] = False
+            cmake.definitions['WITH_IMGCODEC_SUNRASTER'] = False
 
         # We are building C++ only. Disable other languages
         cmake.definitions['BUILD_JAVA'] = False
@@ -441,6 +455,9 @@ class OpenCVConan(ConanFile):
 
         if not self.options.protobuf:
             opencv_libs.remove("dnn")
+
+        if self.settings.os == 'Emscripten':
+            opencv_libs.remove("videoio")
 
         if self.settings.os != 'Android':
             # gapi depends on ade but ade disabled for Android
