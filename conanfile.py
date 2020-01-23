@@ -379,7 +379,7 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         if self.settings.os == 'Android':
-            cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
+            cmake.definitions['ANDROID_STL'] = "c++_static"
             cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
 
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
