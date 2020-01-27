@@ -76,6 +76,18 @@ class OpenCVConan(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
 
+    def _android_abi(self):
+        if self.settings.os != 'Android':
+            raise ConanInvalidConfiguration("Only supported for os == 'Android'")
+        arch = str(self.settings.arch)
+        return {
+            'armv5': 'armeabi',
+            'armv6': 'armeabi-v6',
+            'armv7': 'armeabi-v7a',
+            'armv7hf': 'armeabi-v7a',
+            'armv8': 'arm64-v8a'
+        }.get(arch, arch)
+
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
         if self.settings.compiler == "Visual Studio" and compiler_version < "14":
@@ -384,12 +396,7 @@ class OpenCVConan(ConanFile):
 
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
 
-            arch = str(self.settings.arch)
-            cmake.definitions['ANDROID_ABI'] = {'armv5': 'armeabi',
-                                                'armv6': 'armeabi-v6',
-                                                'armv7': 'armeabi-v7a',
-                                                'armv7hf': 'armeabi-v7a',
-                                                'armv8': 'arm64-v8a'}.get(arch, arch)
+            cmake.definitions['ANDROID_ABI'] = self._android_abi()
 
             if 'ANDROID_NDK_HOME' in os.environ:
                 cmake.definitions['ANDROID_NDK'] = os.environ.get(
@@ -549,7 +556,10 @@ class OpenCVConan(ConanFile):
             self.cpp_info.includedirs.append(
                 os.path.join('sdk', 'native', 'jni', 'include'))
             self.cpp_info.libdirs.append(
-                os.path.join('sdk', 'native', 'staticlibs'))
+                os.path.join('sdk', 'native', 'staticlibs', self._android_abi()))
+            self.cpp_info.exelinkflags.append('-llog')
+            self.cpp_info.sharedlinkflags.append('-llog')
+
         else:
             self.cpp_info.includedirs.append(
                 os.path.join('include', 'opencv4'))
