@@ -501,6 +501,8 @@ class OpenCVConan(ConanFile):
                 opencv_libs.remove("freetype")
             if not self.options.eigen or not self.options.glog or not self.options.gflags:
                 opencv_libs.remove("sfm")
+            if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
+                opencv_libs.remove("superres")
 
         if self.options.cuda:
             opencv_libs = ["cudaarithm",
