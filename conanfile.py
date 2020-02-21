@@ -41,7 +41,8 @@ class OpenCVConan(ConanFile):
                "openblas": [True, False],
                "ffmpeg": [True, False],
                "lapack": [True, False],
-               "quirc": [True, False]}
+               "quirc": [True, False],
+               "qt": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
@@ -67,7 +68,8 @@ class OpenCVConan(ConanFile):
                        "openblas": False,
                        "ffmpeg": False,
                        "lapack": False,
-                       "quirc": True}
+                       "quirc": True,
+                       "qt": False}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
     generators = "cmake"
@@ -175,6 +177,8 @@ class OpenCVConan(ConanFile):
             self.requires.add('ffmpeg/4.2@bincrafters/stable')
         if self.options.lapack:
             self.requires.add('lapack/3.7.1@conan/stable')
+        if self.options.qt:
+            self.requires.add('qt/5.14.1@bincrafters/stable')
         if self.options.contrib:
             if self.options.freetype:
                 self.requires.add('freetype/2.10.0')
@@ -351,6 +355,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_CUDA'] = self.options.cuda
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+
+        # Qt
+        cmake.definitions['WITH_QT'] = self.options.qt
 
         # opencv-conrib modules
         if self.options.contrib:
