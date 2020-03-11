@@ -108,6 +108,9 @@ class OpenCVConan(ConanFile):
             del self.options.fPIC
         if self.settings.os != 'Linux':
             del self.options.gtk
+        # https://github.com/openexr/openexr/issues/221
+        if tools.cross_building(self.settings):
+            del self.options.openexr
 
     def system_requirements(self):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
@@ -158,7 +161,8 @@ class OpenCVConan(ConanFile):
         if self.options.jasper:
             self.requires.add('jasper/2.0.14')
             self.options["jasper"].jpegturbo = self.options.jpegturbo
-        if self.options.openexr:
+        if not tools.cross_building(self.settings) and self.options.openexr:
+            # OpenEXR currently doesn't support cross-building
             self.requires.add('openexr/2.3.0')
         if self.options.protobuf:
             # NOTE : version should be the same as used in OpenCV release,
@@ -184,6 +188,15 @@ class OpenCVConan(ConanFile):
                 self.requires.add('glog/0.4.0')
             if self.options.gflags:
                 self.requires.add('gflags/2.2.2')
+
+    @property
+    def _android_arch(self):
+        arch = str(self.settings.arch)
+        return tools.to_android_abi(arch)
+
+    @property
+    def _use_mingw(self):
+        return self.settings.os == "Windows" and self.settings.compiler == "gcc"
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -316,9 +329,12 @@ class OpenCVConan(ConanFile):
 
         # OpenEXR
         cmake.definitions['BUILD_OPENEXR'] = False
-        cmake.definitions['WITH_OPENEXR'] = self.options.openexr
-        if self.options.openexr:
-            cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        if not tools.cross_building(self.settings):
+            cmake.definitions['WITH_OPENEXR'] = self.options.openexr
+            if self.options.openexr:
+                cmake.definitions['OPENEXR_ROOT'] = self.deps_cpp_info['openexr'].rootpath
+        else:
+            cmake.definitions['WITH_OPENEXR'] = False
 
         # PNG
         cmake.definitions['BUILD_PNG'] = False
@@ -379,24 +395,7 @@ class OpenCVConan(ConanFile):
             cmake.definitions['WITH_GTK_2_X'] = self.options.gtk == 2
 
         if self.settings.os == 'Android':
-            cmake.definitions['ANDROID_STL'] = self.settings.compiler.libcxx
-            cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
-
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
-
-            arch = str(self.settings.arch)
-            if arch.startswith(('armv7', 'armv8')):
-                cmake.definitions['ANDROID_ABI'] = 'NEON'
-            else:
-                cmake.definitions['ANDROID_ABI'] = {'armv5': 'armeabi',
-                                                    'armv6': 'armeabi-v6',
-                                                    'armv7': 'armeabi-v7a',
-                                                    'armv7hf': 'armeabi-v7a',
-                                                    'armv8': 'arm64-v8a'}.get(arch, arch)
-
-            if 'ANDROID_NDK_HOME' in os.environ:
-                cmake.definitions['ANDROID_NDK'] = os.environ.get(
-                    'ANDROID_NDK_HOME')
 
         if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
             cmake.definitions['IOS'] = True
@@ -413,8 +412,15 @@ class OpenCVConan(ConanFile):
                                   'set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/src/'
                                   'imgwarp.cpp PROPERTIES COMPILE_FLAGS "-O0")')
 
+        # using -isystem will make mingw gcc fail to build
+        if self._use_mingw:
+            tools.replace_in_file(os.path.join(self._source_subfolder, 'cmake', 'OpenCVPCHSupport.cmake'),
+                "ocv_is_opencv_directory(__result ${item})", "set(__result TRUE)")
+
         tools.patch(base_path=self._source_subfolder,
                     patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-to-respect-OPENEXR_ROOT.patch"))
+        tools.patch(base_path=self._source_subfolder,
+                    patch_file=os.path.join("patches", "fix-android-armv7-c++_static-init-crash.patch"))
         tools.patch(base_path='contrib',
                     patch_file=os.path.join("patches", "0001-fix-find_package-for-glog-gflags.patch"))
 
@@ -519,7 +525,7 @@ class OpenCVConan(ConanFile):
                             "cudev"
                             ] + opencv_libs
 
-        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.compiler == 'Visual Studio' else ''
+        suffix = 'd' if self.settings.build_type == 'Debug' and self.settings.os == "Windows" else ''
         version = self.version.replace(
             ".", "") if self.settings.os == "Windows" else ""
         for lib in opencv_libs:
@@ -550,11 +556,13 @@ class OpenCVConan(ConanFile):
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
         elif self.settings.os == 'Windows':
             self.cpp_info.libs.append('Vfw32')
-        if self.settings.os == 'Android' and not self.options.shared:
-            self.cpp_info.includedirs.append(
-                os.path.join('sdk', 'native', 'jni', 'include'))
-            self.cpp_info.libdirs.append(
-                os.path.join('sdk', 'native', 'staticlibs'))
+        if self.settings.os == 'Android':
+            self.cpp_info.libs.extend(['log', 'cpufeatures'])
+            if not self.options.shared:
+                self.cpp_info.includedirs.append(
+                    os.path.join('sdk', 'native', 'jni', 'include'))
+                self.cpp_info.libdirs.append(
+                    os.path.join('sdk', 'native', 'staticlibs', self._android_arch))
         else:
             self.cpp_info.includedirs.append(
                 os.path.join('include', 'opencv4'))
