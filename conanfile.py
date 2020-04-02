@@ -176,7 +176,7 @@ class OpenCVConan(ConanFile):
         if self.options.openblas:
             self.requires.add('openblas/0.3.5@conan/stable')
         if self.options.ffmpeg:
-            self.requires.add('ffmpeg/4.2@bincrafters/stable')
+            self.requires.add('ffmpeg/4.2.1@bincrafters/stable')
         if self.options.lapack:
             self.requires.add('lapack/3.7.1@conan/stable')
         if self.options.contrib:
