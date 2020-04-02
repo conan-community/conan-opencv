@@ -149,9 +149,9 @@ class OpenCVConan(ConanFile):
             # NOTE : use the same libjpeg implementation as jasper uses
             # otherwise, jpeg_create_decompress will fail on version check
             if self.options.jpegturbo:
-                self.requires.add('libjpeg-turbo/1.5.2')
+                self.requires.add('libjpeg-turbo/2.0.4')
             else:
-                self.requires.add('libjpeg/9c')
+                self.requires.add('libjpeg/9d')
         if self.options.tiff:
             self.requires.add('libtiff/4.0.9')
         if self.options.webp:
@@ -169,19 +169,19 @@ class OpenCVConan(ConanFile):
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
             self.requires.add('protobuf/3.5.2@bincrafters/stable')
         if self.options.eigen:
-            self.requires.add('eigen/3.3.7@conan/stable')
+            self.requires.add('eigen/3.3.7')
         if self.options.gstreamer:
             self.requires.add('gstreamer/1.16.0@bincrafters/stable')
             self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
         if self.options.openblas:
-            self.requires.add('openblas/0.3.5@conan/stable')
+            self.requires.add('openblas/0.3.7')
         if self.options.ffmpeg:
             self.requires.add('ffmpeg/4.2.1@bincrafters/stable')
         if self.options.lapack:
             self.requires.add('lapack/3.7.1@conan/stable')
         if self.options.contrib:
             if self.options.freetype:
-                self.requires.add('freetype/2.10.0')
+                self.requires.add('freetype/2.10.1')
             if self.options.harfbuzz:
                 self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
             if self.options.glog:
