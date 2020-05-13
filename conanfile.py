@@ -188,6 +188,27 @@ class OpenCVConan(ConanFile):
     def _use_mingw(self):
         return self.settings.os == "Windows" and self.settings.compiler == "gcc"
 
+    def _gather_libs(self, p):
+        libs = self.deps_cpp_info[p].libs + self.deps_cpp_info[p].system_libs
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                libs += self._gather_libs(dep)
+        return libs
+
+    def _gather_lib_paths(self, p):
+        lib_paths = self.deps_cpp_info[p].lib_paths
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                lib_paths += self._gather_lib_paths(dep)
+        return lib_paths
+
+    def _gather_include_paths(self, p):
+        include_paths = self.deps_cpp_info[p].include_paths
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                include_paths += self._gather_include_paths(dep)
+        return include_paths
+
     def _configure_cmake(self):
         cmake = CMake(self)
 
@@ -273,22 +294,16 @@ class OpenCVConan(ConanFile):
             cmake.definitions['OPENCV_INSTALL_FFMPEG_DOWNLOAD_SCRIPT'] = False
             for lib in ['avcodec', 'avformat', 'avutil', 'swscale', 'avresample']:
                 cmake.definitions['FFMPEG_lib%s_VERSION' % lib] = self.deps_cpp_info['ffmpeg'].version
-            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
-            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
+            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self._gather_libs('ffmpeg'))
+            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('ffmpeg'))
 
         # GStreamer
         cmake.definitions['WITH_GSTREAMER'] = self.options.gstreamer
         if self.options.gstreamer:
             cmake.definitions['HAVE_GSTREAMER'] = True
             cmake.definitions['GSTREAMER_VERSION'] = self.deps_cpp_info['gstreamer'].version
-            libs = []
-            includes = []
-            for dep in ['pcre', 'libffi', 'gettext', 'glib', 'gstreamer', 'gst-plugins-base']:
-                if dep in self.deps_cpp_info.deps:
-                    libs.extend(self.deps_cpp_info[dep].libs)
-                    includes.extend(self.deps_cpp_info[dep].include_paths)
-            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
-            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
+            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(self._gather_libs('gstreamer'))
+            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('gstreamer'))
 
         # Intel IPP
         cmake.definitions['BUILD_IPP_IW'] = False
@@ -312,10 +327,10 @@ class OpenCVConan(ConanFile):
         if self.options.lapack:
             cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
             cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
-            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
+            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self._gather_include_paths('lapack'))
             cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
-            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].libs)
-            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].lib_paths)
+            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self._gather_libs('lapack'))
+            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self._gather_lib_paths('lapack'))
 
         # OpenEXR
         cmake.definitions['BUILD_OPENEXR'] = False
@@ -366,18 +381,18 @@ class OpenCVConan(ConanFile):
             # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
             if self.options.freetype:
                 cmake.definitions['FREETYPE_FOUND'] = True
-                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
-                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
+                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('freetype'))
+                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self._gather_libs('freetype'))
             if self.options.harfbuzz:
                 cmake.definitions['HARFBUZZ_FOUND'] = True
-                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
-                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
+                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('harfbuzz'))
+                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self._gather_libs('harfbuzz'))
             if self.options.gflags:
-                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
-                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
+                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self._gather_include_paths('gflags'))
+                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self._gather_lib_paths('gflags'))
             if self.options.glog:
-                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
-                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self._gather_include_paths('glog'))
+                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self._gather_lib_paths('glog'))
 
         # system libraries
         if self.settings.os == 'Linux':
