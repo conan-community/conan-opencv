@@ -19,6 +19,7 @@ class OpenCVConan(ConanFile):
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "contrib": [True, False],
+               "modules": "ANY",
                "jpeg": [True, False],
                "jpegturbo": [True, False],
                "tiff": [True, False],
@@ -45,6 +46,7 @@ class OpenCVConan(ConanFile):
     default_options = {"shared": False,
                        "fPIC": True,
                        "contrib": False,
+                       "modules": None,
                        "jpeg": True,
                        "jpegturbo": False,
                        "tiff": True,
@@ -368,7 +370,7 @@ class OpenCVConan(ConanFile):
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
 
-        # opencv-conrib modules
+        # opencv-contrib modules
         if self.options.contrib:
             cmake.definitions['OPENCV_EXTRA_MODULES_PATH'] = os.path.join(self.build_folder, 'contrib', 'modules')
             cmake.definitions['OPENCV_ENABLE_NONFREE'] = self.options.nonfree
@@ -388,6 +390,10 @@ class OpenCVConan(ConanFile):
             if self.options.glog:
                 cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
                 cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+
+        # Specify a custom set of modules
+        if self.options.modules:
+            cmake.definitions['BUILD_LIST'] = self.options.modules
 
         # system libraries
         if self.settings.os == 'Linux':
@@ -444,20 +450,24 @@ class OpenCVConan(ConanFile):
         self.cpp_info.exelinkflags.extend(pkg_config.libs_only_other)
 
     def package_info(self):
-        opencv_libs = ["stitching",
-                       "photo",
-                       "video",
-                       "ml",
-                       "calib3d",
-                       "features2d",
-                       "highgui",
-                       "videoio",
-                       "flann",
-                       "imgcodecs",
-                       "objdetect",
-                       "dnn",
-                       "imgproc",
-                       "core"]
+        if self.options.modules:
+            opencv_libs = str(self.options.modules).split(',')
+        else:
+            # Default core list   
+            opencv_libs = ["stitching",
+                           "photo",
+                           "video",
+                           "ml",
+                           "calib3d",
+                           "features2d",
+                           "highgui",
+                           "videoio",
+                           "flann",
+                           "imgcodecs",
+                           "objdetect",
+                           "dnn",
+                           "imgproc",
+                           "core"]
 
         if not self.options.protobuf:
             opencv_libs.remove("dnn")
@@ -465,43 +475,45 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Emscripten':
             opencv_libs.remove("videoio")
 
-        if self.settings.os != 'Android':
+        if not self.options.modules and self.settings.os != 'Android':
             # gapi depends on ade but ade disabled for Android
             # https://github.com/opencv/opencv/blob/4.0.1/modules/gapi/cmake/DownloadADE.cmake#L2
             opencv_libs.append("gapi")
 
         if self.options.contrib:
-            opencv_libs = [
-                "aruco",
-                "bgsegm",
-                "bioinspired",
-                "ccalib",
-                "datasets",
-                "dpm",
-                "face",
-                "freetype",
-                "fuzzy",
-                "hfs",
-                "img_hash",
-                "line_descriptor",
-                "optflow",
-                "phase_unwrapping",
-                "plot",
-                "reg",
-                "rgbd",
-                "saliency",
-                "shape",
-                "stereo",
-                "structured_light",
-                "superres",
-                "surface_matching",
-                "tracking",
-                "videostab",
-                "xfeatures2d",
-                "ximgproc",
-                "xobjdetect",
-                "xphoto",
-                "sfm"] + opencv_libs
+            # Add all contrib modules if no specific list given
+            if not self.options.modules:
+                opencv_libs = [
+                    "aruco",
+                    "bgsegm",
+                    "bioinspired",
+                    "ccalib",
+                    "datasets",
+                    "dpm",
+                    "face",
+                    "freetype",
+                    "fuzzy",
+                    "hfs",
+                    "img_hash",
+                    "line_descriptor",
+                    "optflow",
+                    "phase_unwrapping",
+                    "plot",
+                    "reg",
+                    "rgbd",
+                    "saliency",
+                    "shape",
+                    "stereo",
+                    "structured_light",
+                    "superres",
+                    "surface_matching",
+                    "tracking",
+                    "videostab",
+                    "xfeatures2d",
+                    "ximgproc",
+                    "xobjdetect",
+                    "xphoto",
+                    "sfm"] + opencv_libs
 
             if not self.options.freetype or not self.options.harfbuzz:
                 opencv_libs.remove("freetype")
@@ -510,7 +522,8 @@ class OpenCVConan(ConanFile):
             if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
                 opencv_libs.remove("superres")
 
-        if self.options.cuda:
+        # Add all cuda modules if cuda option given but no specific module list
+        if self.options.cuda and not self.options.modules:
             opencv_libs = ["cudaarithm",
                             "cudabgsegm",
                             "cudacodec",
@@ -572,5 +585,5 @@ class OpenCVConan(ConanFile):
                 self.cpp_info.libs.append('ade')
                 if self.options.quirc:
                     self.cpp_info.libs.append('quirc%s' % suffix)
-        if self.options.contrib and self.options.eigen and self.options.glog and self.options.gflags:
+        if 'sfm' in opencv_libs and self.options.eigen and self.options.glog and self.options.gflags:
             self.cpp_info.libs.append('multiview')
