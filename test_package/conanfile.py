@@ -27,3 +27,5 @@ class TestPackageConan(ConanFile):
         shutil.copy(img_path, 'bin')
         with tools.chdir('bin'):
             self.run('lena.exe' if self.settings.os == 'Windows' else './lena', run_environment=True)
+            for image in ['lena.jpg', 'normal.tiff', 'lzma.tiff', 'jbig.tiff']:
+                self.run(('load-image.exe' if self.settings.os == 'Windows' else './load-image') + ' ' + image, run_environment=True)

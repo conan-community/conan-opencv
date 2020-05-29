@@ -9,3 +9,9 @@ CONAN_BASIC_SETUP()
 
 ADD_EXECUTABLE(lena  lena.cpp)
 TARGET_LINK_LIBRARIES(lena ${CONAN_LIBS})
+
+ADD_EXECUTABLE(load-image load-image.cpp)
+TARGET_LINK_LIBRARIES(load-image ${CONAN_LIBS})
+configure_file(normal.tiff "${CMAKE_BINARY_DIR}/bin" COPYONLY)
+configure_file(jbig.tiff "${CMAKE_BINARY_DIR}/bin" COPYONLY)
+configure_file(lzma.tiff "${CMAKE_BINARY_DIR}/bin" COPYONLY)
