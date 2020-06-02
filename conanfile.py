@@ -116,30 +116,20 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
             if tools.os_info.with_apt:
                 installer = tools.SystemPackageTool()
-                arch_suffix = ''
-                if self.settings.arch == 'x86':
-                    arch_suffix = ':i386'
-                elif self.settings.arch == 'x86_64':
-                    arch_suffix = ':amd64'
                 packages = []
                 if self.options.gtk == 2:
-                    packages.append('libgtk2.0-dev%s' % arch_suffix)
+                    packages.append('libgtk2.0-dev')
                 elif self.options.gtk == 3:
-                    packages.append('libgtk-3-dev%s' % arch_suffix)
+                    packages.append('libgtk-3-dev')
                 for package in packages:
                     installer.install(package)
             elif tools.os_info.with_yum:
                 installer = tools.SystemPackageTool()
-                arch_suffix = ''
-                if self.settings.arch == 'x86':
-                    arch_suffix = '.i686'
-                elif self.settings.arch == 'x86_64':
-                    arch_suffix = '.x86_64'
                 packages = []
                 if self.options.gtk == 2:
-                    packages.append('gtk2-devel%s' % arch_suffix)
+                    packages.append('gtk2-devel')
                 elif self.options.gtk == 3:
-                    packages.append('gtk3-devel%s' % arch_suffix)
+                    packages.append('gtk3-devel')
                 for package in packages:
                     installer.install(package)
 
@@ -535,7 +525,7 @@ class OpenCVConan(ConanFile):
             self.cpp_info.libs.extend(["nvrtc", "cudart", "cuda"])
 
         if self.settings.os == "Linux":
-            self.cpp_info.libs.extend([
+            self.cpp_info.system_libs.extend([
                 "pthread",
                 "m",
                 "dl"])
@@ -544,18 +534,16 @@ class OpenCVConan(ConanFile):
             elif self.options.gtk == 3:
                 self.add_libraries_from_pc('gtk+-3.0')
         elif self.settings.os == 'Macos':
-            for framework in ['OpenCL',
+            self.cpp_info.frameworks.extend(['OpenCL',
                               'Accelerate',
                               'CoreMedia',
                               'CoreVideo',
                               'CoreGraphics',
                               'AVFoundation',
                               'QuartzCore',
-                              'Cocoa']:
-                self.cpp_info.exelinkflags.append('-framework %s' % framework)
-            self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
+                              'Cocoa'])
         elif self.settings.os == 'Windows':
-            self.cpp_info.libs.append('Vfw32')
+            self.cpp_info.system_libs.append('Vfw32')
         if self.settings.os == 'Android':
             self.cpp_info.libs.extend(['log', 'cpufeatures'])
             if not self.options.shared:
