@@ -350,6 +350,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_PROTOBUF'] = False
         cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
         cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
+        if self.options.protobuf and self.settings.compiler == 'Visual Studio' and self.options.shared:
+            # this relies on CMake's bundled FindProtobuf.cmake
+            cmake.definitions['Protobuf_USE_STATIC_LIBS'] = not self.options['protobuf'].shared
 
         # Intel TBB
         cmake.definitions['BUILD_TBB'] = False
