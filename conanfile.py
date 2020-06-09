@@ -73,6 +73,7 @@ class OpenCVConan(ConanFile):
     short_paths = True
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
+    _cmake = None
 
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
@@ -208,6 +209,8 @@ class OpenCVConan(ConanFile):
         return include_paths
 
     def _configure_cmake(self):
+        if self._cmake:
+            return self._cmake
         cmake = CMake(self)
 
         # General configuration
@@ -409,7 +412,8 @@ class OpenCVConan(ConanFile):
             cmake.definitions['IOS'] = True
 
         cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+        self._cmake = cmake
+        return self._cmake
 
     def build(self):
         # https://github.com/opencv/opencv/issues/8010
