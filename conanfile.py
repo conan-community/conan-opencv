@@ -360,6 +360,11 @@ class OpenCVConan(ConanFile):
         # TIFF
         cmake.definitions['BUILD_TIFF'] = False
         cmake.definitions['WITH_TIFF'] = self.options.tiff
+        if self.options.tiff:
+            cmake.definitions['TIFF_FOUND'] = True
+            # TIFF_INCLUDE_DIR is used to parse version from tiff.h
+            cmake.definitions['TIFF_INCLUDE_DIR'] = self.deps_cpp_info['libtiff'].include_paths[0]
+            cmake.definitions['TIFF_LIBRARY'] = cmake.definitions['TIFF_LIBRARIES'] = ';'.join(self._gather_libs('libtiff'))
 
         # WebP
         cmake.definitions['BUILD_WEBP'] = False
