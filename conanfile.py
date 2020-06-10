@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 from conans.model.version import Version
 from conans.errors import ConanInvalidConfiguration
@@ -75,6 +73,7 @@ class OpenCVConan(ConanFile):
     short_paths = True
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
+    _cmake = None
 
     def configure(self):
         compiler_version = Version(self.settings.compiler.version.value)
@@ -116,30 +115,20 @@ class OpenCVConan(ConanFile):
         if self.settings.os == 'Linux' and tools.os_info.is_linux:
             if tools.os_info.with_apt:
                 installer = tools.SystemPackageTool()
-                arch_suffix = ''
-                if self.settings.arch == 'x86':
-                    arch_suffix = ':i386'
-                elif self.settings.arch == 'x86_64':
-                    arch_suffix = ':amd64'
                 packages = []
                 if self.options.gtk == 2:
-                    packages.append('libgtk2.0-dev%s' % arch_suffix)
+                    packages.append('libgtk2.0-dev')
                 elif self.options.gtk == 3:
-                    packages.append('libgtk-3-dev%s' % arch_suffix)
+                    packages.append('libgtk-3-dev')
                 for package in packages:
                     installer.install(package)
             elif tools.os_info.with_yum:
                 installer = tools.SystemPackageTool()
-                arch_suffix = ''
-                if self.settings.arch == 'x86':
-                    arch_suffix = '.i686'
-                elif self.settings.arch == 'x86_64':
-                    arch_suffix = '.x86_64'
                 packages = []
                 if self.options.gtk == 2:
-                    packages.append('gtk2-devel%s' % arch_suffix)
+                    packages.append('gtk2-devel')
                 elif self.options.gtk == 3:
-                    packages.append('gtk3-devel%s' % arch_suffix)
+                    packages.append('gtk3-devel')
                 for package in packages:
                     installer.install(package)
 
@@ -149,9 +138,9 @@ class OpenCVConan(ConanFile):
             # NOTE : use the same libjpeg implementation as jasper uses
             # otherwise, jpeg_create_decompress will fail on version check
             if self.options.jpegturbo:
-                self.requires.add('libjpeg-turbo/1.5.2')
+                self.requires.add('libjpeg-turbo/2.0.4')
             else:
-                self.requires.add('libjpeg/9c')
+                self.requires.add('libjpeg/9d')
         if self.options.tiff:
             self.requires.add('libtiff/4.0.9')
         if self.options.webp:
@@ -169,19 +158,19 @@ class OpenCVConan(ConanFile):
             # otherwise, PROTOBUF_UPDATE_FILES should be set to re-generate files
             self.requires.add('protobuf/3.5.2@bincrafters/stable')
         if self.options.eigen:
-            self.requires.add('eigen/3.3.7@conan/stable')
+            self.requires.add('eigen/3.3.7')
         if self.options.gstreamer:
             self.requires.add('gstreamer/1.16.0@bincrafters/stable')
             self.requires.add('gst-plugins-base/1.16.0@bincrafters/stable')
         if self.options.openblas:
-            self.requires.add('openblas/0.3.5@conan/stable')
+            self.requires.add('openblas/0.3.7')
         if self.options.ffmpeg:
-            self.requires.add('ffmpeg/4.2@bincrafters/stable')
+            self.requires.add('ffmpeg/4.2.1@bincrafters/stable')
         if self.options.lapack:
             self.requires.add('lapack/3.7.1@conan/stable')
         if self.options.contrib:
             if self.options.freetype:
-                self.requires.add('freetype/2.10.0')
+                self.requires.add('freetype/2.10.1')
             if self.options.harfbuzz:
                 self.requires.add('harfbuzz/2.4.0@bincrafters/stable')
             if self.options.glog:
@@ -198,7 +187,30 @@ class OpenCVConan(ConanFile):
     def _use_mingw(self):
         return self.settings.os == "Windows" and self.settings.compiler == "gcc"
 
+    def _gather_libs(self, p):
+        libs = self.deps_cpp_info[p].libs + self.deps_cpp_info[p].system_libs
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                libs += self._gather_libs(dep)
+        return libs
+
+    def _gather_lib_paths(self, p):
+        lib_paths = self.deps_cpp_info[p].lib_paths
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                lib_paths += self._gather_lib_paths(dep)
+        return lib_paths
+
+    def _gather_include_paths(self, p):
+        include_paths = self.deps_cpp_info[p].include_paths
+        if not getattr(self.options[p],'shared', False):
+            for dep in self.deps_cpp_info[p].public_deps:
+                include_paths += self._gather_include_paths(dep)
+        return include_paths
+
     def _configure_cmake(self):
+        if self._cmake:
+            return self._cmake
         cmake = CMake(self)
 
         # General configuration
@@ -283,22 +295,16 @@ class OpenCVConan(ConanFile):
             cmake.definitions['OPENCV_INSTALL_FFMPEG_DOWNLOAD_SCRIPT'] = False
             for lib in ['avcodec', 'avformat', 'avutil', 'swscale', 'avresample']:
                 cmake.definitions['FFMPEG_lib%s_VERSION' % lib] = self.deps_cpp_info['ffmpeg'].version
-            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self.deps_cpp_info['ffmpeg'].libs)
-            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['ffmpeg'].include_paths)
+            cmake.definitions['FFMPEG_LIBRARIES'] = ';'.join(self._gather_libs('ffmpeg'))
+            cmake.definitions['FFMPEG_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('ffmpeg'))
 
         # GStreamer
         cmake.definitions['WITH_GSTREAMER'] = self.options.gstreamer
         if self.options.gstreamer:
             cmake.definitions['HAVE_GSTREAMER'] = True
             cmake.definitions['GSTREAMER_VERSION'] = self.deps_cpp_info['gstreamer'].version
-            libs = []
-            includes = []
-            for dep in ['pcre', 'libffi', 'gettext', 'glib', 'gstreamer', 'gst-plugins-base']:
-                if dep in self.deps_cpp_info.deps:
-                    libs.extend(self.deps_cpp_info[dep].libs)
-                    includes.extend(self.deps_cpp_info[dep].include_paths)
-            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(libs)
-            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(includes)
+            cmake.definitions['GSTREAMER_LIBRARIES'] = ';'.join(self._gather_libs('gstreamer'))
+            cmake.definitions['GSTREAMER_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('gstreamer'))
 
         # Intel IPP
         cmake.definitions['BUILD_IPP_IW'] = False
@@ -322,10 +328,10 @@ class OpenCVConan(ConanFile):
         if self.options.lapack:
             cmake.definitions['LAPACK_CBLAS_H'] = 'cblas.h'
             cmake.definitions['LAPACK_IMPL'] = 'LAPACK/Generic'
-            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self.deps_cpp_info['lapack'].include_paths)
+            cmake.definitions['LAPACK_INCLUDE_DIR'] = ';'.join(self._gather_include_paths('lapack'))
             cmake.definitions['LAPACK_LAPACKE_H'] = 'lapacke.h'
-            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].libs)
-            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self.deps_cpp_info['lapack'].lib_paths)
+            cmake.definitions['LAPACK_LIBRARIES'] = ';'.join(self._gather_libs('lapack'))
+            cmake.definitions['LAPACK_LINK_LIBRARIES'] = ';'.join(self._gather_lib_paths('lapack'))
 
         # OpenEXR
         cmake.definitions['BUILD_OPENEXR'] = False
@@ -344,6 +350,9 @@ class OpenCVConan(ConanFile):
         cmake.definitions['BUILD_PROTOBUF'] = False
         cmake.definitions['PROTOBUF_UPDATE_FILES'] = False
         cmake.definitions['WITH_PROTOBUF'] = self.options.protobuf
+        if self.options.protobuf and self.settings.compiler == 'Visual Studio' and self.options.shared:
+            # this relies on CMake's bundled FindProtobuf.cmake
+            cmake.definitions['Protobuf_USE_STATIC_LIBS'] = not self.options['protobuf'].shared
 
         # Intel TBB
         cmake.definitions['BUILD_TBB'] = False
@@ -355,6 +364,11 @@ class OpenCVConan(ConanFile):
         # TIFF
         cmake.definitions['BUILD_TIFF'] = False
         cmake.definitions['WITH_TIFF'] = self.options.tiff
+        if self.options.tiff:
+            cmake.definitions['TIFF_FOUND'] = True
+            # TIFF_INCLUDE_DIR is used to parse version from tiff.h
+            cmake.definitions['TIFF_INCLUDE_DIR'] = self.deps_cpp_info['libtiff'].include_paths[0]
+            cmake.definitions['TIFF_LIBRARY'] = cmake.definitions['TIFF_LIBRARIES'] = ';'.join(self._gather_libs('libtiff'))
 
         # WebP
         cmake.definitions['BUILD_WEBP'] = False
@@ -376,18 +390,18 @@ class OpenCVConan(ConanFile):
             # OpenCV doesn't use find_package for freetype & harfbuzz, so let's specify them
             if self.options.freetype:
                 cmake.definitions['FREETYPE_FOUND'] = True
-                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['freetype'].include_paths)
-                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self.deps_cpp_info['freetype'].libs)
+                cmake.definitions['FREETYPE_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('freetype'))
+                cmake.definitions['FREETYPE_LIBRARIES'] = ';'.join(self._gather_libs('freetype'))
             if self.options.harfbuzz:
                 cmake.definitions['HARFBUZZ_FOUND'] = True
-                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self.deps_cpp_info['harfbuzz'].include_paths)
-                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self.deps_cpp_info['harfbuzz'].libs)
+                cmake.definitions['HARFBUZZ_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('harfbuzz'))
+                cmake.definitions['HARFBUZZ_LIBRARIES'] = ';'.join(self._gather_libs('harfbuzz'))
             if self.options.gflags:
-                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].include_paths)
-                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['gflags'].lib_paths)
+                cmake.definitions['GFLAGS_INCLUDE_DIR_HINTS'] = ';'.join(self._gather_include_paths('gflags'))
+                cmake.definitions['GFLAGS_LIBRARY_DIR_HINTS'] = ';'.join(self._gather_lib_paths('gflags'))
             if self.options.glog:
-                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].include_paths)
-                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self.deps_cpp_info['glog'].lib_paths)
+                cmake.definitions['GLOG_INCLUDE_DIR_HINTS'] = ';'.join(self._gather_include_paths('glog'))
+                cmake.definitions['GLOG_LIBRARY_DIR_HINTS'] = ';'.join(self._gather_lib_paths('glog'))
 
         # system libraries
         if self.settings.os == 'Linux':
@@ -401,7 +415,8 @@ class OpenCVConan(ConanFile):
             cmake.definitions['IOS'] = True
 
         cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+        self._cmake = cmake
+        return self._cmake
 
     def build(self):
         # https://github.com/opencv/opencv/issues/8010
@@ -535,7 +550,7 @@ class OpenCVConan(ConanFile):
             self.cpp_info.libs.extend(["nvrtc", "cudart", "cuda"])
 
         if self.settings.os == "Linux":
-            self.cpp_info.libs.extend([
+            self.cpp_info.system_libs.extend([
                 "pthread",
                 "m",
                 "dl"])
@@ -544,18 +559,16 @@ class OpenCVConan(ConanFile):
             elif self.options.gtk == 3:
                 self.add_libraries_from_pc('gtk+-3.0')
         elif self.settings.os == 'Macos':
-            for framework in ['OpenCL',
+            self.cpp_info.frameworks.extend(['OpenCL',
                               'Accelerate',
                               'CoreMedia',
                               'CoreVideo',
                               'CoreGraphics',
                               'AVFoundation',
                               'QuartzCore',
-                              'Cocoa']:
-                self.cpp_info.exelinkflags.append('-framework %s' % framework)
-            self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
+                              'Cocoa'])
         elif self.settings.os == 'Windows':
-            self.cpp_info.libs.append('Vfw32')
+            self.cpp_info.system_libs.append('Vfw32')
         if self.settings.os == 'Android':
             self.cpp_info.libs.extend(['log', 'cpufeatures'])
             if not self.options.shared:
