@@ -6,7 +6,7 @@ import os
 
 class OpenCVConan(ConanFile):
     name = "opencv"
-    version = "4.2.0"
+    version = "4.3.0"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv"
@@ -90,11 +90,11 @@ class OpenCVConan(ConanFile):
             del self.options.gflags
 
     def source(self):
-        sha256 = "9ccb2192d7e8c03c58fee07051364d94ed7599363f3b0dce1c5e6cc11c1bb0ec"
+        sha256 = "68bc40cbf47fdb8ee73dfaf0d9c6494cd095cf6294d99de445ab64cf853d278a"
         tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
-        sha256 = "8a6b5661611d89baa59a26eb7ccf4abb3e55d73f99bb52d8f7c32265c8a43020"
+        sha256 = "acb8e89c9e7d1174e63e40532125b60d248b00e517255a98a419d415228c6a55"
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
