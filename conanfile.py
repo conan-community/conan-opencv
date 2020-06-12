@@ -432,6 +432,9 @@ class OpenCVConan(ConanFile):
             tools.replace_in_file(os.path.join(self._source_subfolder, 'cmake', 'OpenCVPCHSupport.cmake'),
                 "ocv_is_opencv_directory(__result ${item})", "set(__result TRUE)")
 
+        tools.patch(base_path=self._source_subfolder,
+            patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-typo.patch"))
+
         cmake = self._configure_cmake()
         cmake.build()
 
