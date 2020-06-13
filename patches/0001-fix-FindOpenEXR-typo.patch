@@ -1,0 +1,13 @@
+diff --git a/cmake/OpenCVFindOpenEXR.cmake b/cmake/OpenCVFindOpenEXR.cmake
+index fb6c2fa14690cb3807ebac936702623ba7bc8570..a1a6a5d3b6329c6fd08f981bdce6e86f9ebe84b0 100644
+--- a/cmake/OpenCVFindOpenEXR.cmake
++++ b/cmake/OpenCVFindOpenEXR.cmake
+@@ -68,7 +68,7 @@ FOREACH(SEARCH_PATH ${SEARCH_PATHS})
+         "-${OPENEXR_VERSION}"
+         "-${OPENEXR_VERSION}_s"
+         "-${OPENEXR_VERSION}_d"
+-        "-${OPEXEXR_VERSION}_s_d"
++        "-${OPENEXR_VERSION}_s_d"
+         ""
+         "_s"
+         "_d"
