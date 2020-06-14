@@ -1,0 +1,12 @@
+diff --git a/cmake/OpenCVFindLibsGrfmt.cmake b/cmake/OpenCVFindLibsGrfmt.cmake
+index 0beaf193170b44af3b724c30b527c989d20713dd..effd392c5f4ba1dcf1446c0a60271012d6263154 100644
+--- a/cmake/OpenCVFindLibsGrfmt.cmake
++++ b/cmake/OpenCVFindLibsGrfmt.cmake
+@@ -155,7 +155,6 @@ endif()
+ 
+ # --- libopenjp2 (optional, check before libjasper) ---
+ if(WITH_OPENJPEG)
+-  find_package(OpenJPEG QUIET)
+ 
+   if(NOT OpenJPEG_FOUND OR OPENJPEG_MAJOR_VERSION LESS 2)
+     set(HAVE_OPENJPEG NO)
