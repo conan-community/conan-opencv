@@ -6,7 +6,7 @@ import os
 
 class OpenCVConan(ConanFile):
     name = "opencv"
-    version = "4.2.0"
+    version = "4.3.0"
     license = "BSD-3-Clause"
     homepage = "https://github.com/opencv/opencv"
     url = "https://github.com/conan-community/conan-opencv"
@@ -22,7 +22,7 @@ class OpenCVConan(ConanFile):
                "tiff": [True, False],
                "webp": [True, False],
                "png": [True, False],
-               "jasper": [True, False],
+               "jpeg2000": ["jasper", "openjpeg", None],
                "openexr": [True, False],
                "gtk": [None, 2, 3],
                "nonfree": [True, False],
@@ -48,7 +48,7 @@ class OpenCVConan(ConanFile):
                        "tiff": True,
                        "webp": True,
                        "png": True,
-                       "jasper": True,
+                       "jpeg2000": "openjpeg",
                        "openexr": True,
                        "gtk": None,
                        "nonfree": False,
@@ -90,11 +90,11 @@ class OpenCVConan(ConanFile):
             del self.options.gflags
 
     def source(self):
-        sha256 = "9ccb2192d7e8c03c58fee07051364d94ed7599363f3b0dce1c5e6cc11c1bb0ec"
+        sha256 = "68bc40cbf47fdb8ee73dfaf0d9c6494cd095cf6294d99de445ab64cf853d278a"
         tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename('opencv-%s' % self.version, self._source_subfolder)
 
-        sha256 = "8a6b5661611d89baa59a26eb7ccf4abb3e55d73f99bb52d8f7c32265c8a43020"
+        sha256 = "acb8e89c9e7d1174e63e40532125b60d248b00e517255a98a419d415228c6a55"
         tools.get("https://github.com/opencv/opencv_contrib/archive/{}.tar.gz".format(self.version), sha256=sha256)
         os.rename('opencv_contrib-%s' % self.version, 'contrib')
 
@@ -147,7 +147,9 @@ class OpenCVConan(ConanFile):
             self.requires.add('libwebp/1.0.3')
         if self.options.png:
             self.requires.add('libpng/1.6.37')
-        if self.options.jasper:
+        if self.options.jpeg2000 == "openjpeg":
+            self.requires.add('openjpeg/2.3.1')
+        if self.options.jpeg2000 == "jasper":
             self.requires.add('jasper/2.0.14')
             self.options["jasper"].jpegturbo = self.options.jpegturbo
         if not tools.cross_building(self.settings) and self.options.openexr:
@@ -316,8 +318,20 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_ITT'] = False
 
         # jasper
-        cmake.definitions['BUILD_JASPER'] = False
-        cmake.definitions['WITH_JASPER'] = self.options.jasper
+        if self.options.jpeg2000 == "jasper":
+            cmake.definitions['BUILD_JASPER'] = False
+            cmake.definitions['WITH_JASPER'] = True
+
+        # openjpeg
+        if self.options.jpeg2000 == "openjpeg":
+            cmake.definitions['OpenJPEG_FOUND'] = True
+            cmake.definitions['BUILD_OPENJPEG'] = False
+            cmake.definitions['WITH_OPENJPEG'] = True
+            cmake.definitions['OPENJPEG_LIBRARIES'] = ';'.join(self._gather_libs('openjpeg'))
+            cmake.definitions['OPENJPEG_INCLUDE_DIRS'] = ';'.join(self._gather_include_paths('openjpeg'))
+            cmake.definitions['OPENJPEG_MAJOR_VERSION'] = 2
+            cmake.definitions['OPENJPEG_MINOR_VERSION'] = 3
+            cmake.definitions['OPENJPEG_BUILD_VERSION'] = 1
 
         # JPEG
         cmake.definitions['BUILD_JPEG'] = False
@@ -434,6 +448,10 @@ class OpenCVConan(ConanFile):
 
         tools.patch(base_path=self._source_subfolder,
             patch_file=os.path.join("patches", "0001-fix-FindOpenEXR-typo.patch"))
+        tools.patch(base_path=self._source_subfolder,
+            patch_file=os.path.join("patches", "0002-fix-FindOpenJPEG-doesnt-exist.patch"))
+        tools.patch(base_path=self._source_subfolder,
+            patch_file=os.path.join("patches", "0003-OpenJPEG-fixed-compilation-and-warnings-with-VS.patch"))
 
         cmake = self._configure_cmake()
         cmake.build()

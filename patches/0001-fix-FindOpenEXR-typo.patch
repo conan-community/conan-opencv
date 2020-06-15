@@ -1,13 +1,13 @@
 diff --git a/cmake/OpenCVFindOpenEXR.cmake b/cmake/OpenCVFindOpenEXR.cmake
-index fb6c2fa14690cb3807ebac936702623ba7bc8570..a1a6a5d3b6329c6fd08f981bdce6e86f9ebe84b0 100644
+index 9103f1f5a71028d7641aa12bc7954b4e90d21699..ef633e853adc629c3061b4d5ce992e992af78878 100644
 --- a/cmake/OpenCVFindOpenEXR.cmake
 +++ b/cmake/OpenCVFindOpenEXR.cmake
-@@ -68,7 +68,7 @@ FOREACH(SEARCH_PATH ${SEARCH_PATHS})
-         "-${OPENEXR_VERSION}"
-         "-${OPENEXR_VERSION}_s"
-         "-${OPENEXR_VERSION}_d"
--        "-${OPEXEXR_VERSION}_s_d"
-+        "-${OPENEXR_VERSION}_s_d"
-         ""
-         "_s"
-         "_d"
+@@ -88,7 +88,7 @@ FOREACH(SEARCH_PATH ${SEARCH_PATHS})
+     ocv_find_openexr("-${OPENEXR_VERSION}")
+     ocv_find_openexr("-${OPENEXR_VERSION}_s")
+     ocv_find_openexr("-${OPENEXR_VERSION}_d")
+-    ocv_find_openexr("-${OPEXEXR_VERSION}_s_d")
++    ocv_find_openexr("-${OPENEXR_VERSION}_s_d")
+     ocv_find_openexr("")
+     ocv_find_openexr("_s")
+     ocv_find_openexr("_d")
