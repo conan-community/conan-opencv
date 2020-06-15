@@ -52,6 +52,7 @@ The following command both runs all the steps of the conan file, and publishes t
 | shared      | False |  [True, False] | Build shared libraries only |
 | fPIC      | True |  [True, False] | Compile with -fPIC (Linux only) |
 | contrib      | False |  [True, False] | Build OpenCV contrib from sources |
+| modules   | None | Any comma-delimited string | Select specific OpenCV modules to build |
 | jpeg      | True |  [True, False] | Build with libjpeg |
 | jpegturbo | False |  [True, False] | Build with libjpeg-turbo |
 | tiff      | True |  [True, False] | Build with libtiff |
