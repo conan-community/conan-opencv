@@ -20,14 +20,14 @@ If you wish to report an issue or make a request for a package, please do so her
 
 ### Basic setup
 
-    $ conan install opencv/4.1.1@conan/stable
+    $ conan install opencv/4.3.0@conan/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    opencv/4.1.1@conan/stable
+    opencv/4.3.0@conan/stable
 
     [generators]
     cmake
@@ -57,7 +57,7 @@ The following command both runs all the steps of the conan file, and publishes t
 | tiff      | True |  [True, False] | Build with libtiff |
 | webp      | True |  [True, False] | Build with libwebp |
 | png      | True |  [True, False] | Build with libpng |
-| jasper      | True |  [True, False] | Build with jasper |
+| jpeg2000      | "openjpeg" |  ["jasper", "openjpeg", None] | Build with openjpeg / jasper / without jpeg support |
 | openexr      | True |  [True, False] | Build with openexr |
 | gtk      | None |  [None, 2, 3] | Build with system GTK-2.0 or GTK-3 |
 | nonfree | False | [True, False] | Include non-free features in the build. This is required to use patented algorithms such as SIFT, SURF or KinectFusion. |
