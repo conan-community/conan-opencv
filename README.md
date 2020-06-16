@@ -76,6 +76,25 @@ The following command both runs all the steps of the conan file, and publishes t
 | ffmpeg      | False |  [True, False] | Build with ffmpeg |
 | lapack      | False |  [True, False] | Build with lapack |
 | quirc       | True |  [True, False] | Build with QR-code decoding library |
+| qt       | False |  [True, False] | Build with Qt5 |
+
+
+### Qt5 builds
+Below is an example of how to configure Qt5 enabled OpenCV dependencies in your own project:
+
+```
+cmake_minimum_required(VERSION 3.15)
+project(my-opencv-qt-project)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
+
+set(Qt5_DIR ${CONAN_QT_ROOT})
+find_package(Qt5 CONFIG COMPONENTS Core Gui Widgets Test Concurrent REQUIRED)
+
+target_link_libraries(CONAN_PKG::opencv INTERFACE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Test Qt5::Concurrent)
+target_link_libraries(${PROJECT_NAME} CONAN_PKG::opencv)
+```
 
 
 ## Add Remote
