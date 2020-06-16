@@ -423,6 +423,16 @@ class OpenCVConan(ConanFile):
 
         if self.settings.os == 'Android':
             cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
+            cmake.definitions['ANDROID_STL'] = "c++_static"
+            cmake.definitions['ANDROID_NATIVE_API_LEVEL'] = self.settings.os.api_level
+
+            cmake.definitions['BUILD_ANDROID_EXAMPLES'] = False
+
+            cmake.definitions['ANDROID_ABI'] = self._android_arch
+
+            if 'ANDROID_NDK_HOME' in os.environ:
+                cmake.definitions['ANDROID_NDK'] = os.environ.get(
+                    'ANDROID_NDK_HOME')
 
         if str(self.settings.os) in ["iOS", "watchOS", "tvOS"]:
             cmake.definitions['IOS'] = True
