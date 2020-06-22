@@ -139,7 +139,7 @@ class OpenCVConan(ConanFile):
 
     def requirements(self):
         self.requires.add('zlib/1.2.11')
-        if self.options.gtk == 3:
+        if self.settings.os == "Linux" and self.options.gtk == 3:
             self.requires.add('libmount/2.33.1')
             self.requires.add('libffi/3.3')
         if self.options.jpeg:
