@@ -367,6 +367,9 @@ class OpenCVConan(ConanFile):
         if self.options.protobuf and self.settings.compiler == 'Visual Studio' and self.options.shared:
             # this relies on CMake's bundled FindProtobuf.cmake
             cmake.definitions['Protobuf_USE_STATIC_LIBS'] = not self.options['protobuf'].shared
+        if self.options.protobuf and self.settings.os == 'Android':
+            # add the log library as dependency of protobuf
+            cmake.definitions['CONAN_OPENCV_PROTOBUF_DEPENDENCIES'] = 'log'
 
         # Intel TBB
         cmake.definitions['BUILD_TBB'] = False
@@ -452,6 +455,8 @@ class OpenCVConan(ConanFile):
             patch_file=os.path.join("patches", "0002-fix-FindOpenJPEG-doesnt-exist.patch"))
         tools.patch(base_path=self._source_subfolder,
             patch_file=os.path.join("patches", "0003-OpenJPEG-fixed-compilation-and-warnings-with-VS.patch"))
+        tools.patch(base_path=self._source_subfolder,
+            patch_file=os.path.join("patches", "0004-add-protobuf-dependencies.patch"))
 
         cmake = self._configure_cmake()
         cmake.build()
