@@ -39,6 +39,7 @@ class OpenCVConan(ConanFile):
                "openblas": [True, False],
                "ffmpeg": [True, False],
                "lapack": [True, False],
+               "parallel": ["tbb", "openmp", None],
                "quirc": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
@@ -65,6 +66,7 @@ class OpenCVConan(ConanFile):
                        "openblas": False,
                        "ffmpeg": False,
                        "lapack": False,
+                       "parallel": None,
                        "quirc": True}
     exports_sources = ["CMakeLists.txt", "patches/*.patch"]
     exports = "LICENSE"
@@ -179,6 +181,8 @@ class OpenCVConan(ConanFile):
                 self.requires.add('glog/0.4.0')
             if self.options.gflags:
                 self.requires.add('gflags/2.2.2')
+        if self.options.parallel == "tbb":
+                self.requires('tbb/2020.1')
 
     @property
     def _android_arch(self):
@@ -398,6 +402,12 @@ class OpenCVConan(ConanFile):
         cmake.definitions['WITH_CUDA'] = self.options.cuda
         # This allows compilation on older GCC/NVCC, otherwise build errors.
         cmake.definitions['CUDA_NVCC_FLAGS'] = '--expt-relaxed-constexpr'
+
+        # Parallel Framework
+        if self.options.parallel == "tbb":
+            cmake.definitions["WITH_TBB"] = True
+        elif self.options.parallel == "openmp":
+            cmake.definitions["WITH_OPENMP"] = True
 
         # opencv-conrib modules
         if self.options.contrib:
