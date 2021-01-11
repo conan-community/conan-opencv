@@ -73,6 +73,7 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     description = "OpenCV is an open source computer vision and machine learning software library."
     short_paths = True
+    deprecated = "opencv/4.5.1@"
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
     _cmake = None
