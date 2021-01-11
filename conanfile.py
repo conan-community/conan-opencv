@@ -39,6 +39,7 @@ class OpenCVConan(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
     short_paths = True
+    deprecated = "opencv/3.4.12@"
 
     def source(self):
         tools.get("https://github.com/opencv/opencv/archive/%s.zip" % self.version)
